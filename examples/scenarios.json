@@ -1,0 +1,29 @@
+[
+  {
+    "name": "Tiny student project",
+    "description": "A small app or uni demo running part-time during development.",
+    "ec2Hours": 40,
+    "ec2Rate": 0.0104,
+    "storageGb": 10,
+    "storageRate": 0.08,
+    "budget": 5
+  },
+  {
+    "name": "Always-on portfolio backend",
+    "description": "A small EC2 instance running for a full 730-hour month.",
+    "ec2Hours": 730,
+    "ec2Rate": 0.0104,
+    "storageGb": 30,
+    "storageRate": 0.08,
+    "budget": 15
+  },
+  {
+    "name": "Growing project",
+    "description": "A larger instance with more storage that may need tighter budget checks.",
+    "ec2Hours": 730,
+    "ec2Rate": 0.0418,
+    "storageGb": 100,
+    "storageRate": 0.08,
+    "budget": 30
+  }
+]
