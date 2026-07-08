@@ -4,24 +4,24 @@ A simple AWS cost estimator mockup that calculates a monthly estimate from EC2 c
 
 ## Features
 
-- EC2 monthly hours × hourly rate
-- EBS storage GB × GB-month rate
-- Monthly total estimate
-- Budget warning when the estimate is over budget
-- Presets for 40h, 160h, and 730h usage
-- Editable rates so the mockup can be adjusted for different regions or instance types
-- Lightweight static frontend with no runtime dependencies
-- Node test suite and GitHub Actions validation
+* EC2 monthly hours × hourly rate
+* EBS storage GB × GB-month rate
+* Monthly total estimate
+* Budget warning when the estimate is over budget
+* Presets for 40h, 160h, and 730h usage
+* Editable rates so the mockup can be adjusted for different regions or instance types
+* Lightweight static frontend with no runtime dependencies
+* Node test suite and GitHub Actions validation
 
 ## Demo assumptions
 
 The default rates are intentionally simple and transparent:
 
-| Item | Default | Source basis |
-| --- | ---: | --- |
-| EC2 `t3.micro` Linux/Unix, US East (N. Virginia) | `$0.0104/hour` | AWS T3 instance pricing page |
-| EBS `gp3` storage | `$0.08/GB-month` | AWS EBS gp3 pricing example |
-| Always-on month | `730 hours` | Common rough monthly estimate |
+|Item|Default|Source basis|
+|-|-:|-|
+|EC2 `t3.micro` Linux/Unix, US East (N. Virginia)|`$0.0104/hour`|AWS T3 instance pricing page|
+|EBS `gp3` storage|`$0.08/GB-month`|AWS EBS gp3 pricing example|
+|Always-on month|`730 hours`|Common rough monthly estimate|
 
 > This is a learning project, not an official AWS quote. Real AWS bills can include region differences, OS differences, taxes, free tier credits, CPU credits, snapshots, data transfer, load balancers, monitoring, and other services.
 
@@ -33,6 +33,26 @@ Open `index.html` directly in a browser, or use any static file server.
 # optional validation
 npm run validate
 ```
+
+\## Documentation
+
+
+
+Additional project notes are available in the `docs` folder:
+
+
+
+\- \[`pricing-assumptions.md`](docs/pricing-assumptions.md) explains the simplified AWS pricing model used by the calculator.
+
+\- \[`manual-test-checklist.md`](docs/manual-test-checklist.md) provides a checklist for manually testing the calculator before publishing changes.
+
+
+
+Example calculator scenarios are available in:
+
+
+
+\- \[`examples/scenarios.json`](examples/scenarios.json)
 
 ## Project structure
 
@@ -84,9 +104,10 @@ aws cloud-cost-calculator ec2 ebs javascript github-pages cloud-computing cost-e
 
 ## Future improvements
 
-- Add more AWS regions
-- Add S3 storage pricing
-- Add RDS estimate cards
-- Add export-to-CSV for estimates
-- Add light/dark mode toggle
-- Add comparison between always-on and part-time usage
+* Add more AWS regions
+* Add S3 storage pricing
+* Add RDS estimate cards
+* Add export-to-CSV for estimates
+* Add light/dark mode toggle
+* Add comparison between always-on and part-time usage
+
