@@ -1,0 +1,22 @@
+{
+  "name": "cloud-cost-calculator",
+  "version": "1.0.0",
+  "description": "A simple AWS cost estimator mockup for EC2 hours, EBS storage, and budget warnings.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "check": "node scripts/check-syntax.mjs",
+    "test": "node --test",
+    "validate": "npm run check && npm test"
+  },
+  "keywords": [
+    "aws",
+    "cloud",
+    "cost-calculator",
+    "ec2",
+    "ebs",
+    "javascript"
+  ],
+  "author": "",
+  "license": "MIT"
+}
