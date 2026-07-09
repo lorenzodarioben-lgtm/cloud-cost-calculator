@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -13,19 +13,34 @@
   </head>
   <body>
     <div class="site-background" aria-hidden="true">
-      <div class="orb orb-one"></div>
-      <div class="orb orb-two"></div>
-      <div class="grid-glow"></div>
+      <div class="mesh mesh-one"></div>
+      <div class="mesh mesh-two"></div>
+      <div class="mesh mesh-three"></div>
+      <div class="grid-plane"></div>
     </div>
 
     <main class="page-shell">
+      <header class="topbar" aria-label="Project header">
+        <a class="brand" href="#">
+          <span class="brand-mark">AWS</span>
+          <span>Cloud Cost Calculator</span>
+        </a>
+
+        <nav class="topnav" aria-label="Page navigation">
+          <a href="#calculator">Calculator</a>
+          <a href="docs/pricing-assumptions.md">Assumptions</a>
+          <a href="examples/scenarios.json">Scenarios</a>
+        </nav>
+      </header>
+
       <section class="hero" aria-labelledby="page-title">
-        <div class="hero-content">
+        <div class="hero-copy-block">
           <p class="eyebrow">FinOps lab / AWS estimate mockup</p>
           <h1 id="page-title">Cloud cost control before the bill arrives.</h1>
           <p class="hero-copy">
-            Model a lightweight AWS setup with EC2 compute, EBS storage, editable rates, and a monthly budget guardrail.
-            Built as a clean portfolio project for cloud fundamentals, JavaScript logic, and practical cost awareness.
+            Estimate EC2 compute, EBS storage, and monthly budget risk in a clean portfolio-grade
+            interface. Built to demonstrate cloud fundamentals, practical cost awareness, and
+            production-minded JavaScript.
           </p>
 
           <div class="hero-actions" aria-label="Primary actions">
@@ -34,22 +49,27 @@
           </div>
 
           <div class="signal-row" aria-label="Project highlights">
-            <div>
-              <strong>EC2</strong>
-              <span>hourly compute</span>
-            </div>
-            <div>
-              <strong>EBS</strong>
-              <span>GB-month storage</span>
-            </div>
-            <div>
-              <strong>Budget</strong>
-              <span>instant guardrail</span>
-            </div>
+            <article>
+              <span>01</span>
+              <strong>EC2 compute</strong>
+              <p>Model hourly instance runtime across common usage patterns.</p>
+            </article>
+            <article>
+              <span>02</span>
+              <strong>EBS storage</strong>
+              <p>Estimate simple GB-month storage costs with editable rates.</p>
+            </article>
+            <article>
+              <span>03</span>
+              <strong>Budget guardrail</strong>
+              <p>Instantly see whether your monthly estimate is safe or over budget.</p>
+            </article>
           </div>
         </div>
 
         <aside class="hero-panel" aria-label="Example AWS cost flow">
+          <div class="panel-glow"></div>
+
           <div class="terminal-topline">
             <span></span>
             <span></span>
@@ -60,158 +80,190 @@
           <div class="architecture-map">
             <div class="service-node node-primary">
               <span class="node-icon">EC2</span>
-              <strong>Compute</strong>
-              <small>730 hrs</small>
+              <div>
+                <strong>Compute</strong>
+                <small>730 hours / t3.micro</small>
+              </div>
             </div>
-            <div class="connector-line"></div>
+
+            <div class="flow-line"></div>
+
             <div class="service-node">
               <span class="node-icon">EBS</span>
-              <strong>Storage</strong>
-              <small>30 GB</small>
+              <div>
+                <strong>Storage</strong>
+                <small>30 GB / gp3</small>
+              </div>
             </div>
-            <div class="connector-line"></div>
+
+            <div class="flow-line"></div>
+
             <div class="service-node node-accent">
               <span class="node-icon">$</span>
-              <strong>Budget</strong>
-              <small>Safe</small>
+              <div>
+                <strong>Budget state</strong>
+                <small>Under monthly guardrail</small>
+              </div>
             </div>
           </div>
 
-          <div class="code-preview">
-            <p><span>monthly_total</span>: <strong>"$9.99"</strong></p>
-            <p><span>status</span>: <strong>"under_budget"</strong></p>
-            <p><span>region</span>: <strong>"us-east-1"</strong></p>
+          <div class="code-preview" aria-label="Example estimate">
+            <p><span>monthly_total</span><strong>"$9.99"</strong></p>
+            <p><span>status</span><strong>"under_budget"</strong></p>
+            <p><span>region</span><strong>"us-east-1"</strong></p>
           </div>
         </aside>
       </section>
 
       <section class="metric-strip" aria-label="Calculator capabilities">
         <article>
-          <span>01</span>
-          <strong>Adjust usage</strong>
-          <p>Switch between dev sprint, part-time, and always-on monthly hour presets.</p>
+          <span>Live</span>
+          <strong>Editable inputs</strong>
+          <p>Change hours, rates, storage, and budget without refreshing the page.</p>
         </article>
         <article>
-          <span>02</span>
-          <strong>Edit rates</strong>
-          <p>Override mock EC2 and EBS rates to compare scenarios quickly.</p>
+          <span>Static</span>
+          <strong>GitHub Pages ready</strong>
+          <p>No backend required. The project runs as a lightweight static frontend.</p>
         </article>
         <article>
-          <span>03</span>
-          <strong>Watch budget</strong>
-          <p>See whether the estimate is safely under budget or needs attention.</p>
+          <span>Tested</span>
+          <strong>Node validation</strong>
+          <p>Pure calculator logic is covered by a small Node test suite.</p>
         </article>
       </section>
 
-      <section class="calculator-grid" id="calculator" aria-label="Cloud cost calculator">
-        <form class="card form-card" data-calculator-form>
-          <div class="card-heading">
-            <p class="section-kicker">Configuration</p>
-            <h2>Build your estimate</h2>
-            <span>Live inputs</span>
-          </div>
+      <section class="calculator-section" id="calculator" aria-label="Cloud cost calculator">
+        <div class="section-intro">
+          <p class="section-kicker">Calculator</p>
+          <h2>Build a monthly AWS estimate.</h2>
+          <p>
+            Pick a workload shape, tune the mock pricing assumptions, and watch the estimate update
+            immediately.
+          </p>
+        </div>
 
-          <div class="form-section">
-            <div class="section-heading">
-              <span class="section-number">01</span>
+        <div class="calculator-grid">
+          <form class="card form-card" data-calculator-form>
+            <div class="card-heading">
               <div>
-                <h3>EC2 compute</h3>
-                <p>Estimate monthly instance runtime.</p>
+                <p class="section-kicker">Configuration</p>
+                <h3>Usage inputs</h3>
+              </div>
+              <span>Live model</span>
+            </div>
+
+            <div class="form-section">
+              <div class="section-heading">
+                <span class="section-number">01</span>
+                <div>
+                  <h4>EC2 compute</h4>
+                  <p>Estimate monthly instance runtime.</p>
+                </div>
+              </div>
+
+              <div class="field-grid">
+                <div class="field field-full">
+                  <label for="ec2-instance">Instance type</label>
+                  <select id="ec2-instance" name="ec2-instance"></select>
+                </div>
+
+                <div class="field">
+                  <label for="ec2-hours">Monthly hours</label>
+                  <input id="ec2-hours" name="ec2-hours" type="number" min="0" step="1" />
+                </div>
+
+                <div class="field">
+                  <label for="ec2-rate">EC2 rate / hour</label>
+                  <input id="ec2-rate" name="ec2-rate" type="number" min="0" step="0.0001" />
+                </div>
+              </div>
+
+              <div class="preset-row" aria-label="Hour presets">
+                <button type="button" data-hours-preset="40">40h dev sprint</button>
+                <button type="button" data-hours-preset="160">160h part-time</button>
+                <button type="button" data-hours-preset="730">730h always-on</button>
               </div>
             </div>
 
-            <div class="field-grid">
-              <div class="field field-full">
-                <label for="ec2-instance">Instance type</label>
-                <select id="ec2-instance" name="ec2-instance"></select>
+            <div class="form-section">
+              <div class="section-heading">
+                <span class="section-number">02</span>
+                <div>
+                  <h4>EBS storage</h4>
+                  <p>Estimate provisioned storage for the month.</p>
+                </div>
               </div>
-              <div class="field">
-                <label for="ec2-hours">Monthly hours</label>
-                <input id="ec2-hours" name="ec2-hours" type="number" min="0" step="1" />
-              </div>
-              <div class="field">
-                <label for="ec2-rate">EC2 rate / hour</label>
-                <input id="ec2-rate" name="ec2-rate" type="number" min="0" step="0.0001" />
+
+              <div class="field-grid">
+                <div class="field field-full">
+                  <label for="storage-type">Storage type</label>
+                  <select id="storage-type" name="storage-type"></select>
+                </div>
+
+                <div class="field">
+                  <label for="storage-gb">Storage GB</label>
+                  <input id="storage-gb" name="storage-gb" type="number" min="0" step="1" />
+                </div>
+
+                <div class="field">
+                  <label for="storage-rate">Storage rate / GB-month</label>
+                  <input id="storage-rate" name="storage-rate" type="number" min="0" step="0.001" />
+                </div>
               </div>
             </div>
 
-            <div class="preset-row" aria-label="Hour presets">
-              <button type="button" data-hours-preset="40">40h dev sprint</button>
-              <button type="button" data-hours-preset="160">160h part-time</button>
-              <button type="button" data-hours-preset="730">730h always-on</button>
-            </div>
-          </div>
+            <div class="form-section">
+              <div class="section-heading">
+                <span class="section-number">03</span>
+                <div>
+                  <h4>Budget guardrail</h4>
+                  <p>Set the maximum monthly spend you want to stay under.</p>
+                </div>
+              </div>
 
-          <div class="form-section">
-            <div class="section-heading">
-              <span class="section-number">02</span>
+              <div class="field-grid">
+                <div class="field field-full">
+                  <label for="budget">Monthly budget</label>
+                  <input id="budget" name="budget" type="number" min="0" step="1" />
+                </div>
+              </div>
+
+              <div class="actions">
+                <button class="reset-button" type="button" data-reset>Reset defaults</button>
+              </div>
+            </div>
+          </form>
+
+          <aside class="card result-card" data-result-card data-status="under" aria-live="polite">
+            <div class="result-glow"></div>
+
+            <div class="card-heading result-heading">
               <div>
-                <h3>EBS storage</h3>
-                <p>Estimate provisioned storage for the month.</p>
+                <p class="section-kicker">Forecast</p>
+                <h3>Monthly estimate</h3>
               </div>
+              <span>USD</span>
             </div>
 
-            <div class="field-grid">
-              <div class="field field-full">
-                <label for="storage-type">Storage type</label>
-                <select id="storage-type" name="storage-type"></select>
-              </div>
-              <div class="field">
-                <label for="storage-gb">Storage GB</label>
-                <input id="storage-gb" name="storage-gb" type="number" min="0" step="1" />
-              </div>
-              <div class="field">
-                <label for="storage-rate">Storage rate / GB-month</label>
-                <input id="storage-rate" name="storage-rate" type="number" min="0" step="0.001" />
-              </div>
-            </div>
-          </div>
-
-          <div class="form-section">
-            <div class="section-heading">
-              <span class="section-number">03</span>
-              <div>
-                <h3>Budget guardrail</h3>
-                <p>Set the maximum monthly spend you want to stay under.</p>
-              </div>
+            <div class="total-block">
+              <p class="total-label">Estimated total</p>
+              <p class="total-value" data-total>$0.00</p>
             </div>
 
-            <div class="field-grid">
-              <div class="field field-full">
-                <label for="budget">Monthly budget</label>
-                <input id="budget" name="budget" type="number" min="0" step="1" />
-              </div>
+            <ul class="line-items" data-line-items></ul>
+
+            <p class="budget-message" data-budget-message></p>
+
+            <div class="mini-dashboard" aria-label="Estimate summary labels">
+              <span>us-east-1</span>
+              <span>Linux/Unix</span>
+              <span>Mock quote</span>
             </div>
-            <div class="actions">
-              <button class="reset-button" type="button" data-reset>Reset defaults</button>
-            </div>
-          </div>
-        </form>
 
-        <aside class="card result-card" data-result-card data-status="under" aria-live="polite">
-          <div class="result-glow"></div>
-          <div class="card-heading result-heading">
-            <p class="section-kicker">Forecast</p>
-            <h2>Monthly estimate</h2>
-            <span>USD</span>
-          </div>
-
-          <div class="total-block">
-            <p class="total-label">Estimated total</p>
-            <p class="total-value" data-total>$0.00</p>
-          </div>
-
-          <ul class="line-items" data-line-items></ul>
-          <p class="budget-message" data-budget-message></p>
-
-          <div class="mini-dashboard" aria-label="Estimate summary labels">
-            <span>us-east-1</span>
-            <span>Linux/Unix</span>
-            <span>Mock quote</span>
-          </div>
-
-          <p class="pricing-note" data-pricing-note></p>
-        </aside>
+            <p class="pricing-note" data-pricing-note></p>
+          </aside>
+        </div>
       </section>
     </main>
   </body>
