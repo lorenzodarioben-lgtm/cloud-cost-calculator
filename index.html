@@ -5,27 +5,121 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="A simple AWS cloud cost calculator mockup for estimating EC2 and EBS monthly costs."
+      content="A polished AWS cloud cost calculator mockup for estimating EC2 and EBS monthly costs."
     />
     <title>Cloud Cost Calculator</title>
     <link rel="stylesheet" href="src/styles.css" />
     <script type="module" src="src/app.js"></script>
   </head>
   <body>
+    <div class="site-background" aria-hidden="true">
+      <div class="orb orb-one"></div>
+      <div class="orb orb-two"></div>
+      <div class="grid-glow"></div>
+    </div>
+
     <main class="page-shell">
       <section class="hero" aria-labelledby="page-title">
-        <p class="eyebrow">AWS estimate mockup</p>
-        <h1 id="page-title">Cloud Cost Calculator</h1>
-        <p class="hero-copy">
-          Estimate a small AWS setup by combining EC2 compute hours with EBS storage. Adjust rates, set a budget,
-          and instantly see whether the monthly estimate is safe or over budget.
-        </p>
+        <div class="hero-content">
+          <p class="eyebrow">FinOps lab / AWS estimate mockup</p>
+          <h1 id="page-title">Cloud cost control before the bill arrives.</h1>
+          <p class="hero-copy">
+            Model a lightweight AWS setup with EC2 compute, EBS storage, editable rates, and a monthly budget guardrail.
+            Built as a clean portfolio project for cloud fundamentals, JavaScript logic, and practical cost awareness.
+          </p>
+
+          <div class="hero-actions" aria-label="Primary actions">
+            <a class="primary-link" href="#calculator">Start estimating</a>
+            <a class="secondary-link" href="docs/pricing-assumptions.md">View assumptions</a>
+          </div>
+
+          <div class="signal-row" aria-label="Project highlights">
+            <div>
+              <strong>EC2</strong>
+              <span>hourly compute</span>
+            </div>
+            <div>
+              <strong>EBS</strong>
+              <span>GB-month storage</span>
+            </div>
+            <div>
+              <strong>Budget</strong>
+              <span>instant guardrail</span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="hero-panel" aria-label="Example AWS cost flow">
+          <div class="terminal-topline">
+            <span></span>
+            <span></span>
+            <span></span>
+            <p>estimate.json</p>
+          </div>
+
+          <div class="architecture-map">
+            <div class="service-node node-primary">
+              <span class="node-icon">EC2</span>
+              <strong>Compute</strong>
+              <small>730 hrs</small>
+            </div>
+            <div class="connector-line"></div>
+            <div class="service-node">
+              <span class="node-icon">EBS</span>
+              <strong>Storage</strong>
+              <small>30 GB</small>
+            </div>
+            <div class="connector-line"></div>
+            <div class="service-node node-accent">
+              <span class="node-icon">$</span>
+              <strong>Budget</strong>
+              <small>Safe</small>
+            </div>
+          </div>
+
+          <div class="code-preview">
+            <p><span>monthly_total</span>: <strong>"$9.99"</strong></p>
+            <p><span>status</span>: <strong>"under_budget"</strong></p>
+            <p><span>region</span>: <strong>"us-east-1"</strong></p>
+          </div>
+        </aside>
       </section>
 
-      <section class="calculator-grid" aria-label="Cloud cost calculator">
+      <section class="metric-strip" aria-label="Calculator capabilities">
+        <article>
+          <span>01</span>
+          <strong>Adjust usage</strong>
+          <p>Switch between dev sprint, part-time, and always-on monthly hour presets.</p>
+        </article>
+        <article>
+          <span>02</span>
+          <strong>Edit rates</strong>
+          <p>Override mock EC2 and EBS rates to compare scenarios quickly.</p>
+        </article>
+        <article>
+          <span>03</span>
+          <strong>Watch budget</strong>
+          <p>See whether the estimate is safely under budget or needs attention.</p>
+        </article>
+      </section>
+
+      <section class="calculator-grid" id="calculator" aria-label="Cloud cost calculator">
         <form class="card form-card" data-calculator-form>
+          <div class="card-heading">
+            <p class="section-kicker">Configuration</p>
+            <h2>Build your estimate</h2>
+            <span>Live inputs</span>
+          </div>
+
           <div class="form-section">
-            <h2>EC2 compute</h2>
+            <div class="section-heading">
+              <span class="section-number">01</span>
+              <div>
+                <h3>EC2 compute</h3>
+                <p>Estimate monthly instance runtime.</p>
+              </div>
+            </div>
+
             <div class="field-grid">
               <div class="field field-full">
                 <label for="ec2-instance">Instance type</label>
@@ -40,6 +134,7 @@
                 <input id="ec2-rate" name="ec2-rate" type="number" min="0" step="0.0001" />
               </div>
             </div>
+
             <div class="preset-row" aria-label="Hour presets">
               <button type="button" data-hours-preset="40">40h dev sprint</button>
               <button type="button" data-hours-preset="160">160h part-time</button>
@@ -48,7 +143,14 @@
           </div>
 
           <div class="form-section">
-            <h2>EBS storage</h2>
+            <div class="section-heading">
+              <span class="section-number">02</span>
+              <div>
+                <h3>EBS storage</h3>
+                <p>Estimate provisioned storage for the month.</p>
+              </div>
+            </div>
+
             <div class="field-grid">
               <div class="field field-full">
                 <label for="storage-type">Storage type</label>
@@ -66,7 +168,14 @@
           </div>
 
           <div class="form-section">
-            <h2>Budget guardrail</h2>
+            <div class="section-heading">
+              <span class="section-number">03</span>
+              <div>
+                <h3>Budget guardrail</h3>
+                <p>Set the maximum monthly spend you want to stay under.</p>
+              </div>
+            </div>
+
             <div class="field-grid">
               <div class="field field-full">
                 <label for="budget">Monthly budget</label>
@@ -80,11 +189,27 @@
         </form>
 
         <aside class="card result-card" data-result-card data-status="under" aria-live="polite">
-          <h2>Monthly estimate</h2>
-          <p class="total-label">Estimated total</p>
-          <p class="total-value" data-total>$0.00</p>
+          <div class="result-glow"></div>
+          <div class="card-heading result-heading">
+            <p class="section-kicker">Forecast</p>
+            <h2>Monthly estimate</h2>
+            <span>USD</span>
+          </div>
+
+          <div class="total-block">
+            <p class="total-label">Estimated total</p>
+            <p class="total-value" data-total>$0.00</p>
+          </div>
+
           <ul class="line-items" data-line-items></ul>
           <p class="budget-message" data-budget-message></p>
+
+          <div class="mini-dashboard" aria-label="Estimate summary labels">
+            <span>us-east-1</span>
+            <span>Linux/Unix</span>
+            <span>Mock quote</span>
+          </div>
+
           <p class="pricing-note" data-pricing-note></p>
         </aside>
       </section>
