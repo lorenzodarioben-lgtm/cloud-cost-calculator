@@ -1,11 +1,11 @@
-# Cloud Cost Calculator
+﻿# Cloud Cost Calculator
 
 A simple AWS cost estimator mockup that calculates a monthly estimate from EC2 compute and EBS storage, then warns when the estimate goes over budget.
 
 ## Features
 
-* EC2 monthly hours × hourly rate
-* EBS storage GB × GB-month rate
+* EC2 monthly hours Ã— hourly rate
+* EBS storage GB Ã— GB-month rate
 * Monthly total estimate
 * Budget warning when the estimate is over budget
 * Presets for 40h, 160h, and 730h usage
@@ -58,32 +58,32 @@ Example calculator scenarios are available in:
 
 ```text
 cloud-cost-calculator/
-├── .github/workflows/ci.yml
-├── index.html
-├── package.json
-├── scripts/check-syntax.mjs
-├── src/
-│   ├── app.js
-│   ├── calculator.js
-│   ├── pricing.js
-│   └── styles.css
-└── test/calculator.test.js
+â”œâ”€â”€ .github/workflows/ci.yml
+â”œâ”€â”€ index.html
+â”œâ”€â”€ package.json
+â”œâ”€â”€ scripts/check-syntax.mjs
+â”œâ”€â”€ src/
+â”‚   â”œâ”€â”€ app.js
+â”‚   â”œâ”€â”€ calculator.js
+â”‚   â”œâ”€â”€ pricing.js
+â”‚   â””â”€â”€ styles.css
+â””â”€â”€ test/calculator.test.js
 ```
 
 ## Formula
 
 ```text
-compute cost = EC2 hours × EC2 hourly rate
-storage cost = storage GB × storage GB-month rate
+compute cost = EC2 hours Ã— EC2 hourly rate
+storage cost = storage GB Ã— storage GB-month rate
 monthly estimate = compute cost + storage cost
 ```
 
 Example using the defaults:
 
 ```text
-EC2: 730 × 0.0104 = 7.592
-Storage: 30 × 0.08 = 2.40
-Total: 9.992 ≈ $9.99/month
+EC2: 730 Ã— 0.0104 = 7.592
+Storage: 30 Ã— 0.08 = 2.40
+Total: 9.992 â‰ˆ $9.99/month
 ```
 
 ## GitHub Pages
@@ -91,7 +91,7 @@ Total: 9.992 ≈ $9.99/month
 This project is static, so it can be deployed with GitHub Pages:
 
 1. Push the repository to GitHub.
-2. Open **Settings → Pages**.
+2. Open **Settings â†’ Pages**.
 3. Under **Build and deployment**, choose **Deploy from a branch**.
 4. Select the `main` branch and `/root` folder.
 5. Save.
@@ -110,4 +110,5 @@ aws cloud-cost-calculator ec2 ebs javascript github-pages cloud-computing cost-e
 * Add export-to-CSV for estimates
 * Add light/dark mode toggle
 * Add comparison between always-on and part-time usage
+
 
