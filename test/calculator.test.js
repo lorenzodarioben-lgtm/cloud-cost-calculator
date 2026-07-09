@@ -51,3 +51,45 @@ describe('formatUsd', () => {
     assert.equal(formatUsd(9.992), '$9.99');
   });
 });
+
+describe('budget messages', () => {
+  it('handles a zero budget as no-budget', () => {
+    const result = calculateEstimate({
+      ec2Hours: 730,
+      ec2Rate: 0.0104,
+      storageGb: 30,
+      storageRate: 0.08,
+      budget: 0,
+    });
+
+    assert.equal(result.budgetStatus, 'no-budget');
+    assert.equal(getBudgetMessage(result), 'Add a monthly budget to enable budget warnings.');
+  });
+
+  it('shows an under-budget message when estimate is below budget', () => {
+    const result = calculateEstimate({
+      ec2Hours: 40,
+      ec2Rate: 0.0104,
+      storageGb: 10,
+      storageRate: 0.08,
+      budget: 5,
+    });
+
+    assert.equal(result.budgetStatus, 'under');
+    assert.match(getBudgetMessage(result), /under budget/);
+  });
+});
+
+describe('default estimate example', () => {
+  it('rounds the default estimate to $9.99', () => {
+    const result = calculateEstimate({
+      ec2Hours: 730,
+      ec2Rate: 0.0104,
+      storageGb: 30,
+      storageRate: 0.08,
+      budget: 15,
+    });
+
+    assert.equal(formatUsd(result.total), '$9.99');
+  });
+});
