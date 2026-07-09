@@ -951,3 +951,195 @@ select option {
     min-height: 190px;
   }
 }
+
+/* === Design pass 2 polish overrides === */
+
+.page-shell {
+  width: min(1220px, calc(100% - 48px));
+  padding-top: 34px;
+}
+
+.hero {
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.72fr);
+  gap: 54px;
+  align-items: center;
+  margin-bottom: 38px;
+}
+
+.hero-copy-block {
+  gap: 22px;
+}
+
+h1 {
+  max-width: 760px;
+  font-size: clamp(3.25rem, 6.65vw, 6.35rem);
+  line-height: 0.88;
+  letter-spacing: -0.078em;
+}
+
+.hero-copy {
+  max-width: 680px;
+  font-size: clamp(0.98rem, 1.2vw, 1.12rem);
+  line-height: 1.75;
+}
+
+.hero-actions {
+  margin-top: 2px;
+}
+
+.signal-row {
+  max-width: 760px;
+  gap: 14px;
+}
+
+.signal-row article {
+  min-height: 126px;
+  padding: 19px;
+}
+
+.hero-panel {
+  min-height: 500px;
+  max-width: 470px;
+  justify-self: end;
+  width: 100%;
+}
+
+.architecture-map {
+  padding: 30px 10px 14px;
+}
+
+.service-node {
+  min-height: 84px;
+}
+
+.code-preview {
+  margin-top: 4px;
+}
+
+.metric-strip {
+  gap: 18px;
+  margin: 34px 0 76px;
+}
+
+.metric-strip article {
+  min-height: 142px;
+  padding: 24px;
+}
+
+.calculator-section {
+  gap: 26px;
+}
+
+.section-intro {
+  max-width: 760px;
+}
+
+.section-intro h2 {
+  max-width: 720px;
+  font-size: clamp(2.55rem, 4.4vw, 4.15rem);
+  line-height: 0.92;
+}
+
+.section-intro p:not(.section-kicker) {
+  max-width: 700px;
+}
+
+.calculator-grid {
+  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 0.92fr);
+  gap: 28px;
+}
+
+.form-card,
+.result-card {
+  padding: 30px;
+}
+
+.form-section {
+  padding: 24px;
+}
+
+.card-heading {
+  margin-bottom: 26px;
+}
+
+.card-heading h3 {
+  font-size: clamp(1.85rem, 2.55vw, 2.55rem);
+}
+
+.total-block {
+  min-height: 220px;
+}
+
+.total-value {
+  font-size: clamp(4.2rem, 7.8vw, 6.1rem);
+}
+
+.result-card {
+  min-height: auto;
+}
+
+input,
+select {
+  min-height: 52px;
+}
+
+.primary-link,
+.secondary-link,
+button {
+  min-height: 44px;
+}
+
+@media (max-width: 1120px) {
+  h1 {
+    font-size: clamp(3rem, 6.2vw, 5.3rem);
+  }
+
+  .hero {
+    gap: 34px;
+  }
+
+  .hero-panel {
+    max-width: none;
+  }
+}
+
+@media (max-width: 920px) {
+  .hero,
+  .calculator-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-panel,
+  .result-card {
+    position: static;
+    justify-self: stretch;
+  }
+
+  h1 {
+    max-width: 780px;
+    font-size: clamp(3rem, 12vw, 5.2rem);
+  }
+}
+
+@media (max-width: 720px) {
+  .page-shell {
+    width: min(100% - 24px, 1220px);
+    padding-top: 20px;
+  }
+
+  h1 {
+    font-size: clamp(3rem, 16vw, 4.65rem);
+  }
+
+  .metric-strip {
+    margin-bottom: 56px;
+  }
+
+  .form-card,
+  .result-card,
+  .hero-panel {
+    padding: 20px;
+  }
+}
+
+/* === End design pass 2 polish overrides === */
