@@ -1445,3 +1445,221 @@ select {
 }
 
 /* === End design pass 3 premium polish overrides === */
+
+/* === Design pass 4 final production polish === */
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.page-shell,
+.topbar,
+.hero,
+.metric-strip,
+.calculator-section,
+.calculator-grid {
+  min-width: 0;
+}
+
+.page-shell {
+  width: min(1240px, calc(100% - 56px));
+}
+
+.topbar {
+  border-color: rgba(125, 211, 252, 0.2);
+}
+
+.brand {
+  gap: 10px;
+}
+
+.brand-mark {
+  box-shadow:
+    0 0 26px rgba(125, 211, 252, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.hero {
+  margin-top: 8px;
+  margin-bottom: 46px;
+}
+
+.hero-copy-block {
+  max-width: 720px;
+}
+
+h1 {
+  max-width: 700px;
+  font-size: clamp(3.35rem, 6.1vw, 5.95rem);
+  line-height: 0.9;
+}
+
+.hero-copy {
+  max-width: 650px;
+}
+
+.primary-link,
+.secondary-link {
+  min-height: 42px;
+  font-size: 0.86rem;
+}
+
+.signal-row article {
+  min-height: 118px;
+}
+
+.signal-row strong,
+.metric-strip strong {
+  letter-spacing: -0.02em;
+}
+
+.hero-panel {
+  max-width: 450px;
+  min-height: 486px;
+  border-color: rgba(125, 211, 252, 0.28);
+}
+
+.service-node {
+  min-height: 80px;
+}
+
+.node-icon {
+  width: 48px;
+  height: 48px;
+}
+
+.metric-strip {
+  margin-top: 46px;
+}
+
+.metric-strip article {
+  min-height: 132px;
+}
+
+.calculator-section {
+  position: relative;
+  margin-top: 4px;
+  padding-top: 8px;
+}
+
+.calculator-section::before {
+  content: "";
+  position: absolute;
+  inset: -24px 0 auto;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(125, 211, 252, 0.22),
+    rgba(110, 231, 183, 0.2),
+    transparent
+  );
+}
+
+.section-intro h2 {
+  max-width: 650px;
+  font-size: clamp(2.45rem, 4vw, 3.85rem);
+}
+
+.calculator-grid {
+  grid-template-columns: minmax(0, 1.03fr) minmax(360px, 0.87fr);
+  gap: 34px;
+}
+
+.form-card,
+.result-card {
+  border-color: rgba(125, 211, 252, 0.2);
+}
+
+.card-heading h3 {
+  letter-spacing: -0.045em;
+}
+
+.form-section {
+  border-radius: 26px;
+}
+
+.field-grid {
+  gap: 14px;
+}
+
+input,
+select {
+  min-height: 50px;
+}
+
+.preset-row {
+  gap: 9px;
+}
+
+.preset-row button {
+  min-height: 38px;
+  padding-inline: 14px;
+}
+
+.result-card {
+  max-width: 540px;
+  justify-self: end;
+  width: 100%;
+}
+
+.total-block {
+  min-height: 210px;
+}
+
+.line-items li {
+  padding-block: 14px;
+}
+
+.budget-message {
+  padding-block: 15px;
+}
+
+.pricing-note {
+  max-width: 94%;
+}
+
+@media (max-width: 980px) {
+  .page-shell {
+    width: min(100% - 34px, 1240px);
+  }
+
+  .hero-copy-block,
+  h1,
+  .hero-copy,
+  .section-intro h2 {
+    max-width: none;
+  }
+
+  .result-card {
+    max-width: none;
+    justify-self: stretch;
+  }
+}
+
+@media (max-width: 720px) {
+  .page-shell {
+    width: min(100% - 22px, 1240px);
+  }
+
+  h1 {
+    font-size: clamp(2.9rem, 15vw, 4.45rem);
+  }
+
+  .hero {
+    margin-bottom: 38px;
+  }
+
+  .signal-row article,
+  .metric-strip article {
+    min-height: auto;
+  }
+
+  .calculator-grid {
+    gap: 20px;
+  }
+}
+
+/* === End design pass 4 final production polish === */
