@@ -7,8 +7,14 @@
  * all operate on this single shape so there is exactly one source of truth.
  */
 
-import { clampRange, clampZero, isEnabled } from './validation.js';
+import { clampCount, clampRange, clampZero, isEnabled } from './validation.js';
 import { DEFAULTS } from './pricing.js';
+
+/** Safe upper bounds so a typo can never produce an astronomical estimate. */
+export const LIMITS = Object.freeze({
+  ec2Quantity: 1000,
+  ec2Hours: 744,
+});
 
 /** Bumped whenever the persisted workload shape changes in a breaking way. */
 export const WORKLOAD_VERSION = 1;
@@ -23,6 +29,7 @@ export function createDefaultWorkload() {
       ec2: {
         enabled: true,
         instanceType: DEFAULTS.ec2Instance,
+        quantity: 1,
         hours: DEFAULTS.ec2Hours,
         rate: DEFAULTS.ec2Rate,
       },
@@ -69,7 +76,8 @@ function normalizeEc2(raw, fallback) {
       typeof source.instanceType === 'string' && source.instanceType
         ? source.instanceType
         : fallback.instanceType,
-    hours: clampRange(source.hours, 0, 744, 0),
+    quantity: clampCount(source.quantity, { min: 1, max: LIMITS.ec2Quantity, fallback: 1 }),
+    hours: clampRange(source.hours, 0, LIMITS.ec2Hours, 0),
     rate: clampZero(source.rate, 0),
   };
 }

@@ -50,6 +50,13 @@ describe('normalizeWorkload', () => {
     assert.equal(workload.services.ebs.sizeGb, 0);
   });
 
+  it('coerces EC2 quantity to a bounded integer with a minimum of one', () => {
+    assert.equal(normalizeWorkload({ services: { ec2: { quantity: '4.6' } } }).services.ec2.quantity, 5);
+    assert.equal(normalizeWorkload({ services: { ec2: { quantity: 0 } } }).services.ec2.quantity, 1);
+    assert.equal(normalizeWorkload({ services: { ec2: { quantity: -3 } } }).services.ec2.quantity, 1);
+    assert.equal(normalizeWorkload({ services: { ec2: { quantity: 999999 } } }).services.ec2.quantity, 1000);
+  });
+
   it('respects an explicit disabled flag but defaults to enabled', () => {
     const workload = normalizeWorkload({ services: { ec2: { enabled: false }, ebs: {} } });
 

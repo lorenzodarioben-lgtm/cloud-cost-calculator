@@ -12,8 +12,8 @@ function baseWorkload(overrides = {}) {
     region: 'us-east-1',
     budget: 15,
     services: {
-      ec2: { enabled: true, instanceType: 't3.micro', hours: 730, rate: 0.0104 },
-      ebs: { enabled: true, volumeType: 'EBS gp3', sizeGb: 30, rate: 0.08 },
+      ec2: { enabled: true, instanceType: 't3.micro', quantity: 1, hours: 730, rate: 0.0104 },
+      ebs: { enabled: true, volumeType: 'gp3', sizeGb: 30, rate: 0.08 },
     },
     ...overrides,
   };
@@ -28,6 +28,35 @@ describe('estimateWorkload', () => {
     assert.equal(Number(estimate.total.toFixed(2)), 9.99);
     assert.equal(estimate.overBudget, false);
     assert.equal(estimate.budgetStatus, 'under');
+  });
+
+  it('multiplies EC2 cost by instance quantity', () => {
+    const estimate = estimateWorkload(
+      baseWorkload({
+        services: {
+          ec2: { enabled: true, instanceType: 't3.micro', quantity: 3, hours: 730, rate: 0.0104 },
+          ebs: { enabled: false },
+        },
+      }),
+    );
+
+    assert.equal(Number(estimate.serviceSubtotals.ec2.toFixed(3)), 22.776);
+    const detail = estimate.lineItems[0].detail;
+    assert.match(detail, /3 ×/);
+  });
+
+  it('clamps EC2 quantity and runtime to safe limits', () => {
+    const estimate = estimateWorkload(
+      baseWorkload({
+        services: {
+          ec2: { enabled: true, instanceType: 't3.micro', quantity: 999999, hours: 100000, rate: 0.01 },
+          ebs: { enabled: false },
+        },
+      }),
+    );
+
+    // quantity capped at 1000, hours capped at 744
+    assert.equal(estimate.serviceSubtotals.ec2, 1000 * 744 * 0.01);
   });
 
   it('returns structured line items for each enabled service', () => {

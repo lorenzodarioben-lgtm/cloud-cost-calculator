@@ -54,13 +54,15 @@ export const SERVICE_DEFINITIONS = [
     id: 'ec2',
     label: 'EC2 compute',
     estimate(service) {
+      const quantity = clampRange(service.quantity, 0, 1000, 1);
       const hours = clampRange(service.hours, 0, 744);
       const rate = clampZero(service.rate);
+      const instances = quantity === 1 ? '' : `${formatQuantity(quantity)} × `;
       return [
         {
           label: 'EC2 compute',
-          detail: `${formatQuantity(hours)} h × ${formatRate(rate)}/h`,
-          amount: hours * rate,
+          detail: `${instances}${formatQuantity(hours)} h × ${formatRate(rate)}/h`,
+          amount: quantity * hours * rate,
         },
       ];
     },

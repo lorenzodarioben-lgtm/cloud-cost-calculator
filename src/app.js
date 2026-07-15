@@ -13,6 +13,7 @@ const form = document.querySelector('[data-calculator-form]');
 const regionSelect = document.querySelector('#region');
 const instanceSelect = document.querySelector('#ec2-instance');
 const storageSelect = document.querySelector('#storage-type');
+const ec2QuantityInput = document.querySelector('#ec2-quantity');
 const ec2HoursInput = document.querySelector('#ec2-hours');
 const ec2RateInput = document.querySelector('#ec2-rate');
 const storageGbInput = document.querySelector('#storage-gb');
@@ -84,6 +85,7 @@ function readWorkload() {
       ec2: {
         enabled: true,
         instanceType: instanceSelect.value,
+        quantity: ec2QuantityInput.value,
         hours: ec2HoursInput.value,
         rate: ec2RateInput.value,
       },
@@ -103,6 +105,7 @@ function writeWorkload(workload) {
   regionSelect.value = normalized.region;
   populateServiceOptions(instanceSelect, getServiceOptions(normalized.region, 'ec2'), normalized.services.ec2.instanceType);
   populateServiceOptions(storageSelect, getServiceOptions(normalized.region, 'ebs'), normalized.services.ebs.volumeType);
+  ec2QuantityInput.value = normalized.services.ec2.quantity;
   ec2HoursInput.value = normalized.services.ec2.hours;
   ec2RateInput.value = normalized.services.ec2.rate;
   storageGbInput.value = normalized.services.ebs.sizeGb;

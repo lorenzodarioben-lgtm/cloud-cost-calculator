@@ -177,20 +177,42 @@
                 </div>
 
                 <div class="field">
-                  <label for="ec2-hours">Monthly hours</label>
-                  <input id="ec2-hours" name="ec2-hours" type="number" min="0" step="1" />
+                  <label for="ec2-quantity">Instances</label>
+                  <input
+                    id="ec2-quantity"
+                    name="ec2-quantity"
+                    type="number"
+                    min="1"
+                    max="1000"
+                    step="1"
+                    inputmode="numeric"
+                  />
                 </div>
 
                 <div class="field">
-                  <label for="ec2-rate">EC2 rate / hour</label>
-                  <input id="ec2-rate" name="ec2-rate" type="number" min="0" step="0.0001" />
+                  <label for="ec2-hours">Monthly runtime hours</label>
+                  <input
+                    id="ec2-hours"
+                    name="ec2-hours"
+                    type="number"
+                    min="0"
+                    max="744"
+                    step="1"
+                    inputmode="numeric"
+                  />
+                </div>
+
+                <div class="field field-full">
+                  <label for="ec2-rate">EC2 rate / hour (USD)</label>
+                  <input id="ec2-rate" name="ec2-rate" type="number" min="0" step="0.0001" inputmode="decimal" />
                 </div>
               </div>
 
-              <div class="preset-row" aria-label="Hour presets">
-                <button type="button" data-hours-preset="40">40h dev sprint</button>
-                <button type="button" data-hours-preset="160">160h part-time</button>
-                <button type="button" data-hours-preset="730">730h always-on</button>
+              <div class="preset-row" aria-label="Runtime presets">
+                <button type="button" data-hours-preset="40">Development · 40h</button>
+                <button type="button" data-hours-preset="160">Part-time · 160h</button>
+                <button type="button" data-hours-preset="260">Business hours · 260h</button>
+                <button type="button" data-hours-preset="730">Always-on · 730h</button>
               </div>
             </div>
 
