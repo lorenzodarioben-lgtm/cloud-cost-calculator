@@ -27,6 +27,14 @@ const s3StorageInput = document.querySelector('#s3-storage');
 const s3RateInput = document.querySelector('#s3-rate');
 const s3RequestsInput = document.querySelector('#s3-requests');
 const s3RequestRateInput = document.querySelector('#s3-request-rate');
+const rdsEnabledInput = document.querySelector('#rds-enabled');
+const rdsEngineSelect = document.querySelector('#rds-engine');
+const rdsClassSelect = document.querySelector('#rds-class');
+const rdsQuantityInput = document.querySelector('#rds-quantity');
+const rdsHoursInput = document.querySelector('#rds-hours');
+const rdsRateInput = document.querySelector('#rds-rate');
+const rdsStorageInput = document.querySelector('#rds-storage');
+const rdsStorageRateInput = document.querySelector('#rds-storage-rate');
 const budgetInput = document.querySelector('#budget');
 const budgetMessage = document.querySelector('[data-budget-message]');
 const resultCard = document.querySelector('[data-result-card]');
@@ -40,7 +48,7 @@ const resetButton = document.querySelector('[data-reset]');
 const STORAGE_KEY = 'cloud-cost-calculator-workload';
 
 /** Optional services that can be toggled on/off from their section header. */
-const OPTIONAL_SERVICES = ['ebs', 's3'];
+const OPTIONAL_SERVICES = ['ebs', 's3', 'rds'];
 
 /** Visually and functionally disable a service section when it is switched off. */
 function reflectServiceEnabled(serviceId, enabled) {
@@ -130,6 +138,16 @@ function readWorkload() {
         requests: s3RequestsInput.value,
         requestRate: s3RequestRateInput.value,
       },
+      rds: {
+        enabled: rdsEnabledInput.checked,
+        engine: rdsEngineSelect.value,
+        instanceClass: rdsClassSelect.value,
+        quantity: rdsQuantityInput.value,
+        hours: rdsHoursInput.value,
+        instanceRate: rdsRateInput.value,
+        storageGb: rdsStorageInput.value,
+        storageRate: rdsStorageRateInput.value,
+      },
     },
   });
 }
@@ -153,6 +171,14 @@ function writeWorkload(workload) {
   s3RateInput.value = normalized.services.s3.rate;
   s3RequestsInput.value = normalized.services.s3.requests;
   s3RequestRateInput.value = normalized.services.s3.requestRate;
+  rdsEnabledInput.checked = normalized.services.rds.enabled;
+  rdsEngineSelect.value = normalized.services.rds.engine;
+  populateServiceOptions(rdsClassSelect, getServiceOptions(normalized.region, 'rds'), normalized.services.rds.instanceClass);
+  rdsQuantityInput.value = normalized.services.rds.quantity;
+  rdsHoursInput.value = normalized.services.rds.hours;
+  rdsRateInput.value = normalized.services.rds.instanceRate;
+  rdsStorageInput.value = normalized.services.rds.storageGb;
+  rdsStorageRateInput.value = normalized.services.rds.storageRate;
   budgetInput.value = normalized.budget;
 
   OPTIONAL_SERVICES.forEach((serviceId) => {
@@ -212,10 +238,13 @@ regionSelect.addEventListener('change', () => {
   populateServiceOptions(instanceSelect, getServiceOptions(region, 'ec2'));
   populateServiceOptions(storageSelect, getServiceOptions(region, 'ebs'));
   populateServiceOptions(s3ClassSelect, getServiceOptions(region, 's3'));
+  populateServiceOptions(rdsClassSelect, getServiceOptions(region, 'rds'));
   syncRate(ec2RateInput, 'ec2', instanceSelect.value);
   syncRate(storageRateInput, 'ebs', storageSelect.value);
   syncRate(s3RateInput, 's3', s3ClassSelect.value);
+  syncRate(rdsRateInput, 'rds', rdsClassSelect.value);
   s3RequestRateInput.value = getScalarRate(region, 's3RequestPer1k');
+  rdsStorageRateInput.value = getScalarRate(region, 'rdsStorageGbMonth');
   render();
 });
 
@@ -231,6 +260,11 @@ storageSelect.addEventListener('change', () => {
 
 s3ClassSelect.addEventListener('change', () => {
   syncRate(s3RateInput, 's3', s3ClassSelect.value);
+  render();
+});
+
+rdsClassSelect.addEventListener('change', () => {
+  syncRate(rdsRateInput, 'rds', rdsClassSelect.value);
   render();
 });
 

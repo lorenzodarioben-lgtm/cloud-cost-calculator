@@ -44,6 +44,15 @@ export function formatQuantity(value) {
   return QUANTITY_FORMATTER.format(clampZero(value));
 }
 
+/** Display names for representative RDS engine profiles. */
+const RDS_ENGINE_LABELS = Object.freeze({
+  postgres: 'PostgreSQL',
+  mysql: 'MySQL',
+  mariadb: 'MariaDB',
+  sqlserver: 'SQL Server',
+  oracle: 'Oracle',
+});
+
 /**
  * The service registry. Each definition knows how to turn its slice of the
  * workload into one or more line items. Adding a service here automatically
@@ -104,6 +113,34 @@ export const SERVICE_DEFINITIONS = [
           label: 'S3 requests',
           detail: `${formatQuantity(requests)} req × ${formatRate(requestRate)}/1k`,
           amount: (requests / 1000) * requestRate,
+        });
+      }
+      return items;
+    },
+  },
+  {
+    id: 'rds',
+    label: 'RDS database',
+    estimate(service) {
+      const quantity = clampRange(service.quantity, 0, 100, 1);
+      const hours = clampRange(service.hours, 0, 744);
+      const instanceRate = clampZero(service.instanceRate);
+      const storageGb = clampZero(service.storageGb);
+      const storageRate = clampZero(service.storageRate);
+      const engine = RDS_ENGINE_LABELS[service.engine] ?? 'Database';
+      const count = quantity === 1 ? '' : `${formatQuantity(quantity)} × `;
+      const items = [
+        {
+          label: 'RDS instances',
+          detail: `${engine} · ${count}${formatQuantity(hours)} h × ${formatRate(instanceRate)}/h`,
+          amount: quantity * hours * instanceRate,
+        },
+      ];
+      if (storageGb > 0) {
+        items.push({
+          label: 'RDS storage',
+          detail: `${formatQuantity(storageGb)} GB × ${formatRate(storageRate)}/GB-mo`,
+          amount: storageGb * storageRate,
         });
       }
       return items;

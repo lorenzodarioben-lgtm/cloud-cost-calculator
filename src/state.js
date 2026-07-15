@@ -20,6 +20,8 @@ export const LIMITS = Object.freeze({
   ec2Quantity: 1000,
   ec2Hours: 744,
   ebsVolumes: 100,
+  rdsQuantity: 100,
+  rdsHours: 744,
 });
 
 /** Bumped whenever the persisted workload shape changes in a breaking way. */
@@ -54,6 +56,16 @@ export function createDefaultWorkload() {
         requests: 1_000_000,
         requestRate: getScalarRate(DEFAULT_REGION, 's3RequestPer1k'),
       },
+      rds: {
+        enabled: false,
+        engine: 'postgres',
+        instanceClass: 'db.t3.micro',
+        quantity: 1,
+        hours: DEFAULTS.ec2Hours,
+        instanceRate: getRate(DEFAULT_REGION, 'rds', 'db.t3.micro'),
+        storageGb: 20,
+        storageRate: getScalarRate(DEFAULT_REGION, 'rdsStorageGbMonth'),
+      },
     },
   };
 }
@@ -76,6 +88,7 @@ export function normalizeWorkload(raw) {
       ec2: normalizeEc2(services.ec2, defaults.services.ec2),
       ebs: normalizeEbs(services.ebs, defaults.services.ebs),
       s3: normalizeS3(services.s3, defaults.services.s3),
+      rds: normalizeRds(services.rds, defaults.services.rds),
     },
   };
 }
@@ -124,6 +137,24 @@ function normalizeS3(raw, fallback) {
     rate: clampZero(source.rate, 0),
     requests: clampZero(source.requests, 0),
     requestRate: clampZero(source.requestRate, 0),
+  };
+}
+
+function normalizeRds(raw, fallback) {
+  const source = raw && typeof raw === 'object' ? raw : {};
+  return {
+    enabled: resolveEnabled(source.enabled, fallback.enabled),
+    engine:
+      typeof source.engine === 'string' && source.engine ? source.engine : fallback.engine,
+    instanceClass:
+      typeof source.instanceClass === 'string' && source.instanceClass
+        ? source.instanceClass
+        : fallback.instanceClass,
+    quantity: clampCount(source.quantity, { min: 1, max: LIMITS.rdsQuantity, fallback: 1 }),
+    hours: clampRange(source.hours, 0, LIMITS.rdsHours, 0),
+    instanceRate: clampZero(source.instanceRate, 0),
+    storageGb: clampZero(source.storageGb, 0),
+    storageRate: clampZero(source.storageRate, 0),
   };
 }
 

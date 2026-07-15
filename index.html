@@ -314,6 +314,69 @@
               </div>
             </div>
 
+            <div class="form-section" data-service-section="rds">
+              <div class="section-heading">
+                <span class="section-number">04</span>
+                <div>
+                  <h4>RDS database</h4>
+                  <p>Optional. Instance runtime plus database storage.</p>
+                </div>
+                <label class="service-toggle">
+                  <input type="checkbox" id="rds-enabled" name="rds-enabled" />
+                  <span>Include</span>
+                </label>
+              </div>
+
+              <div class="field-grid" data-service-fields="rds">
+                <div class="field">
+                  <label for="rds-engine">Engine</label>
+                  <select id="rds-engine" name="rds-engine">
+                    <option value="postgres">PostgreSQL</option>
+                    <option value="mysql">MySQL</option>
+                    <option value="mariadb">MariaDB</option>
+                    <option value="sqlserver">SQL Server</option>
+                    <option value="oracle">Oracle</option>
+                  </select>
+                </div>
+
+                <div class="field">
+                  <label for="rds-class">Instance class</label>
+                  <select id="rds-class" name="rds-class"></select>
+                </div>
+
+                <div class="field">
+                  <label for="rds-quantity">Instances</label>
+                  <input id="rds-quantity" name="rds-quantity" type="number" min="1" max="100" step="1" inputmode="numeric" />
+                </div>
+
+                <div class="field">
+                  <label for="rds-hours">Monthly runtime hours</label>
+                  <input id="rds-hours" name="rds-hours" type="number" min="0" max="744" step="1" inputmode="numeric" />
+                </div>
+
+                <div class="field">
+                  <label for="rds-rate">Instance rate / hour (USD)</label>
+                  <input id="rds-rate" name="rds-rate" type="number" min="0" step="0.0001" inputmode="decimal" />
+                </div>
+
+                <div class="field">
+                  <label for="rds-storage">Database storage (GB)</label>
+                  <input id="rds-storage" name="rds-storage" type="number" min="0" step="1" inputmode="numeric" />
+                </div>
+
+                <div class="field field-full">
+                  <label for="rds-storage-rate">Storage rate / GB-month (USD)</label>
+                  <input id="rds-storage-rate" name="rds-storage-rate" type="number" min="0" step="0.0001" inputmode="decimal" />
+                </div>
+
+                <p class="field-hint field-full">
+                  Sample model prices instance runtime and storage only. It excludes backups,
+                  snapshots, Multi-AZ duplication, provisioned I/O, data transfer, and commercial
+                  engine licensing.
+                </p>
+              </div>
+            </div>
+
             <div class="form-section budget-section">
               <div class="section-heading">
                 <span class="section-number section-number--budget">$</span>

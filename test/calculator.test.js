@@ -213,6 +213,46 @@ describe('S3 estimation', () => {
   });
 });
 
+describe('RDS estimation', () => {
+  function withRds(rds) {
+    return baseWorkload({
+      services: {
+        ec2: { enabled: false },
+        ebs: { enabled: false },
+        rds: { enabled: true, engine: 'postgres', instanceClass: 'db.t3.micro', ...rds },
+      },
+    });
+  }
+
+  it('prices instance runtime and storage', () => {
+    const estimate = estimateWorkload(
+      withRds({ quantity: 1, hours: 730, instanceRate: 0.017, storageGb: 20, storageRate: 0.115 }),
+    );
+
+    assert.equal(estimate.serviceSubtotals.rds, 1 * 730 * 0.017 + 20 * 0.115);
+    assert.deepEqual(
+      estimate.lineItems.map((item) => item.label),
+      ['RDS instances', 'RDS storage'],
+    );
+    assert.match(estimate.lineItems[0].detail, /PostgreSQL/);
+  });
+
+  it('multiplies instance cost by quantity and omits zero storage', () => {
+    const estimate = estimateWorkload(
+      withRds({ quantity: 2, hours: 730, instanceRate: 0.017, storageGb: 0, storageRate: 0.115 }),
+    );
+
+    assert.equal(estimate.serviceSubtotals.rds, 2 * 730 * 0.017);
+    assert.equal(estimate.lineItems.length, 1);
+    assert.equal(estimate.lineItems[0].label, 'RDS instances');
+  });
+
+  it('is disabled by default', () => {
+    const estimate = estimateWorkload(baseWorkload());
+    assert.equal(estimate.serviceSubtotals.rds, undefined);
+  });
+});
+
 describe('formatting', () => {
   it('formats currency to two decimals', () => {
     assert.equal(formatUsd(9.992), '$9.99');
