@@ -1,8 +1,16 @@
 import { estimateWorkload, formatUsd, getBudgetMessage } from './calculator.js';
 import { createDefaultWorkload, normalizeWorkload } from './state.js';
-import { DEFAULTS, EC2_RATES, PRICING_NOTES, STORAGE_RATES } from './pricing.js';
+import {
+  DEFAULT_REGION,
+  PRICING_NOTES,
+  getRate,
+  getRegion,
+  getServiceOptions,
+  listRegions,
+} from './pricing.js';
 
 const form = document.querySelector('[data-calculator-form]');
+const regionSelect = document.querySelector('#region');
 const instanceSelect = document.querySelector('#ec2-instance');
 const storageSelect = document.querySelector('#storage-type');
 const ec2HoursInput = document.querySelector('#ec2-hours');
@@ -15,19 +23,39 @@ const resultCard = document.querySelector('[data-result-card]');
 const lineItems = document.querySelector('[data-line-items]');
 const totalOutput = document.querySelector('[data-total]');
 const noteOutput = document.querySelector('[data-pricing-note]');
+const regionTag = document.querySelector('[data-region-tag]');
 const presetButtons = document.querySelectorAll('[data-hours-preset]');
 const resetButton = document.querySelector('[data-reset]');
 
 const STORAGE_KEY = 'cloud-cost-calculator-workload';
 
-function populateSelect(select, rates, unit) {
+function populateRegions(select) {
   select.replaceChildren();
-  Object.entries(rates).forEach(([name, rate]) => {
+  listRegions().forEach(({ id, label }) => {
     const option = document.createElement('option');
-    option.value = name;
-    option.textContent = `${name} — ${formatUsd(rate)}/${unit}`;
+    option.value = id;
+    option.textContent = label;
     select.append(option);
   });
+}
+
+/** Populate a service select from region option data, preserving selection. */
+function populateServiceOptions(select, options, preferredValue) {
+  const previous = preferredValue ?? select.value;
+  select.replaceChildren();
+  options.forEach(({ id, label, spec }) => {
+    const option = document.createElement('option');
+    option.value = id;
+    option.textContent = spec ? `${label} · ${spec}` : label;
+    select.append(option);
+  });
+  if (options.some((option) => option.id === previous)) {
+    select.value = previous;
+  }
+}
+
+function currentRegion() {
+  return regionSelect.value || DEFAULT_REGION;
 }
 
 function loadWorkload() {
@@ -50,7 +78,7 @@ function saveWorkload(workload) {
 /** Read the current form controls into a normalized workload. */
 function readWorkload() {
   return normalizeWorkload({
-    region: DEFAULTS.region ?? 'us-east-1',
+    region: currentRegion(),
     budget: budgetInput.value,
     services: {
       ec2: {
@@ -69,24 +97,17 @@ function readWorkload() {
   });
 }
 
-/** Push a workload back into the form controls. */
+/** Push a workload back into the form controls, syncing region option sets. */
 function writeWorkload(workload) {
   const normalized = normalizeWorkload(workload);
-  instanceSelect.value = normalized.services.ec2.instanceType;
-  storageSelect.value = normalized.services.ebs.volumeType;
+  regionSelect.value = normalized.region;
+  populateServiceOptions(instanceSelect, getServiceOptions(normalized.region, 'ec2'), normalized.services.ec2.instanceType);
+  populateServiceOptions(storageSelect, getServiceOptions(normalized.region, 'ebs'), normalized.services.ebs.volumeType);
   ec2HoursInput.value = normalized.services.ec2.hours;
   ec2RateInput.value = normalized.services.ec2.rate;
   storageGbInput.value = normalized.services.ebs.sizeGb;
   storageRateInput.value = normalized.services.ebs.rate;
   budgetInput.value = normalized.budget;
-}
-
-function renderLineItems(estimate) {
-  lineItems.replaceChildren();
-  estimate.lineItems.forEach((item) => {
-    lineItems.append(buildLineItem(item.label, formatUsd(item.amount)));
-  });
-  lineItems.append(buildLineItem('Budget', formatUsd(estimate.budget)));
 }
 
 function buildLineItem(label, value) {
@@ -99,40 +120,60 @@ function buildLineItem(label, value) {
   return li;
 }
 
+function renderLineItems(estimate) {
+  lineItems.replaceChildren();
+  estimate.lineItems.forEach((item) => {
+    lineItems.append(buildLineItem(item.label, formatUsd(item.amount)));
+  });
+  lineItems.append(buildLineItem('Budget', formatUsd(estimate.budget)));
+}
+
 function render() {
   const workload = readWorkload();
   const estimate = estimateWorkload(workload);
+  const region = getRegion(estimate.region);
 
   renderLineItems(estimate);
   totalOutput.textContent = formatUsd(estimate.total);
   budgetMessage.textContent = getBudgetMessage(estimate);
   resultCard.dataset.status = estimate.budgetStatus;
-  noteOutput.textContent = `${PRICING_NOTES.region}, ${PRICING_NOTES.operatingSystem}, ${PRICING_NOTES.currency}. ${PRICING_NOTES.disclaimer}`;
+  regionTag.textContent = region.id;
+  noteOutput.textContent = `${region.label} · ${PRICING_NOTES.operatingSystem} · ${PRICING_NOTES.currency}. ${PRICING_NOTES.disclaimer}`;
 
   saveWorkload(workload);
 }
 
-function syncRateFromSelect(select, rateInput, rates) {
-  const rate = rates[select.value];
+/** Sync an editable rate input to the sample rate for the current selection. */
+function syncRate(rateInput, serviceKey, optionId) {
+  const rate = getRate(currentRegion(), serviceKey, optionId);
   if (rate !== undefined) {
     rateInput.value = rate;
   }
-  render();
 }
 
-populateSelect(instanceSelect, EC2_RATES, 'hr');
-populateSelect(storageSelect, STORAGE_RATES, 'GB-mo');
+populateRegions(regionSelect);
 writeWorkload(loadWorkload());
 render();
 
 form.addEventListener('input', render);
 
+regionSelect.addEventListener('change', () => {
+  const region = currentRegion();
+  populateServiceOptions(instanceSelect, getServiceOptions(region, 'ec2'));
+  populateServiceOptions(storageSelect, getServiceOptions(region, 'ebs'));
+  syncRate(ec2RateInput, 'ec2', instanceSelect.value);
+  syncRate(storageRateInput, 'ebs', storageSelect.value);
+  render();
+});
+
 instanceSelect.addEventListener('change', () => {
-  syncRateFromSelect(instanceSelect, ec2RateInput, EC2_RATES);
+  syncRate(ec2RateInput, 'ec2', instanceSelect.value);
+  render();
 });
 
 storageSelect.addEventListener('change', () => {
-  syncRateFromSelect(storageSelect, storageRateInput, STORAGE_RATES);
+  syncRate(storageRateInput, 'ebs', storageSelect.value);
+  render();
 });
 
 presetButtons.forEach((button) => {

@@ -656,6 +656,17 @@ button:hover {
   grid-column: 1 / -1;
 }
 
+.region-field {
+  margin-bottom: 20px;
+}
+
+.field-hint {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
 label {
   color: var(--muted-strong);
   font-size: 0.84rem;

@@ -153,6 +153,14 @@
               <span>Live model</span>
             </div>
 
+            <div class="field field-full region-field">
+              <label for="region">Sample region</label>
+              <select id="region" name="region" aria-describedby="region-hint"></select>
+              <p id="region-hint" class="field-hint">
+                Curated sample rates for this region — not a live AWS quote.
+              </p>
+            </div>
+
             <div class="form-section">
               <div class="section-heading">
                 <span class="section-number">01</span>
@@ -256,9 +264,9 @@
             <p class="budget-message" data-budget-message></p>
 
             <div class="mini-dashboard" aria-label="Estimate summary labels">
-              <span>us-east-1</span>
+              <span data-region-tag>us-east-1</span>
               <span>Linux/Unix</span>
-              <span>Mock quote</span>
+              <span>Sample pricing</span>
             </div>
 
             <p class="pricing-note" data-pricing-note></p>
