@@ -19,6 +19,7 @@ import {
 import { compareEstimates } from './compare.js';
 import { buildFilename, parseImport, toCsv, toJson } from './export.js';
 import { buildShareUrl, hasShareParam, parseShareParam } from './share.js';
+import { applyTheme, loadThemePreference, saveThemePreference } from './theme.js';
 import {
   DEFAULT_REGION,
   PRICING_NOTES,
@@ -96,6 +97,8 @@ const exportCsvButton = document.querySelector('[data-export-csv]');
 const copyLinkButton = document.querySelector('[data-copy-link]');
 const importInput = document.querySelector('[data-import]');
 const shareFeedback = document.querySelector('[data-share-feedback]');
+const themeButtons = document.querySelectorAll('[data-theme-choice]');
+const darkModeQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
 const scenarioStorage = resolveStorage();
 let editingScenarioId = null;
@@ -676,8 +679,38 @@ async function copyShareLink() {
   }
 }
 
+/* --- Theme --- */
+
+function reflectThemeButtons(preference) {
+  themeButtons.forEach((button) => {
+    button.setAttribute('aria-pressed', String(button.dataset.themeChoice === preference));
+  });
+}
+
+function setTheme(preference) {
+  const stored = saveThemePreference(scenarioStorage, preference);
+  applyTheme(stored, darkModeQuery.matches, document.documentElement);
+  reflectThemeButtons(stored);
+}
+
+function initTheme() {
+  const preference = loadThemePreference(scenarioStorage);
+  applyTheme(preference, darkModeQuery.matches, document.documentElement);
+  reflectThemeButtons(preference);
+  themeButtons.forEach((button) => {
+    button.addEventListener('click', () => setTheme(button.dataset.themeChoice));
+  });
+  // Re-resolve when the OS theme changes while following the system preference.
+  darkModeQuery.addEventListener('change', () => {
+    if (loadThemePreference(scenarioStorage) === 'system') {
+      applyTheme('system', darkModeQuery.matches, document.documentElement);
+    }
+  });
+}
+
 /* --- Initialization --- */
 
+initTheme();
 populateRegions(regionSelect);
 populatePresets();
 

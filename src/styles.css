@@ -2357,3 +2357,150 @@ button.danger:hover {
 }
 
 /* === End export & share === */
+
+/* === Theme toggle control === */
+
+.theme-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.theme-toggle button {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.theme-toggle button:hover {
+  transform: none;
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.theme-toggle button[aria-pressed="true"] {
+  color: #03111f;
+  background: linear-gradient(135deg, var(--accent-strong), var(--green));
+}
+
+/* === Light theme palette and surfaces === */
+
+:root[data-theme="light"] {
+  --bg: #eef2f9;
+  --bg-2: #e2e8f2;
+  --panel: rgba(255, 255, 255, 0.94);
+  --panel-strong: #ffffff;
+  --panel-soft: rgba(15, 23, 42, 0.04);
+  --border: rgba(15, 23, 42, 0.12);
+  --border-strong: rgba(2, 132, 199, 0.42);
+  --text: #0f172a;
+  --muted: #5b6472;
+  --muted-strong: #334155;
+  --accent: #0284c7;
+  --accent-strong: #0369a1;
+  --green: #059669;
+  --yellow: #b45309;
+  --red: #dc2626;
+  --violet: #7c3aed;
+  --orange: #ea580c;
+  --shadow: 0 24px 60px rgba(15, 23, 42, 0.14);
+}
+
+:root[data-theme="light"] body {
+  background:
+    radial-gradient(circle at 16% 6%, rgba(2, 132, 199, 0.1), transparent 26rem),
+    radial-gradient(circle at 82% 12%, rgba(5, 150, 105, 0.08), transparent 24rem),
+    linear-gradient(150deg, #f4f7fc 0%, #e8eef7 52%, #eef2f9 100%);
+  color: var(--text);
+}
+
+:root[data-theme="light"] body::before,
+:root[data-theme="light"] body::after,
+:root[data-theme="light"] .site-background {
+  opacity: 0.35;
+}
+
+:root[data-theme="light"] .topbar,
+:root[data-theme="light"] .code-preview,
+:root[data-theme="light"] .terminal-topline {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+:root[data-theme="light"] .signal-row article,
+:root[data-theme="light"] .metric-strip article,
+:root[data-theme="light"] .card,
+:root[data-theme="light"] .hero-panel,
+:root[data-theme="light"] .form-card,
+:root[data-theme="light"] .result-card {
+  background: linear-gradient(160deg, #ffffff, #f5f8fd);
+}
+
+:root[data-theme="light"] .form-section,
+:root[data-theme="light"] .service-node,
+:root[data-theme="light"] .total-block,
+:root[data-theme="light"] .line-items li,
+:root[data-theme="light"] .budget-health,
+:root[data-theme="light"] .breakdown,
+:root[data-theme="light"] .recommendation,
+:root[data-theme="light"] .scenario,
+:root[data-theme="light"] .scenario-empty,
+:root[data-theme="light"] .compare-empty,
+:root[data-theme="light"] .compare-summary,
+:root[data-theme="light"] .mini-dashboard span {
+  background: #f4f7fc;
+}
+
+:root[data-theme="light"] input,
+:root[data-theme="light"] select {
+  background: #ffffff;
+  box-shadow: inset 0 1px 0 rgba(15, 23, 42, 0.04);
+}
+
+:root[data-theme="light"] select option {
+  color: #0f172a;
+}
+
+:root[data-theme="light"] .secondary-link,
+:root[data-theme="light"] button {
+  background: #ffffff;
+}
+
+:root[data-theme="light"] .theme-toggle {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+:root[data-theme="light"] .primary-link,
+:root[data-theme="light"] .section-number,
+:root[data-theme="light"] .brand-mark,
+:root[data-theme="light"] .theme-toggle button[aria-pressed="true"],
+:root[data-theme="light"] .preset-chip[aria-pressed="true"] {
+  color: #f8fafc;
+}
+
+/* === Reduced motion === */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .mesh,
+  .hero-panel,
+  .service-node {
+    animation: none !important;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* === End theme toggle and light theme === */

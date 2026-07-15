@@ -8,6 +8,25 @@
       content="A polished AWS cloud cost calculator mockup for estimating EC2 and EBS monthly costs."
     />
     <title>Cloud Cost Calculator</title>
+    <script>
+      // Apply the saved theme before first paint to avoid a flash of the wrong theme.
+      (function () {
+        try {
+          var saved = localStorage.getItem('cloud-cost-calculator-theme');
+          var pref = saved === 'light' || saved === 'dark' || saved === 'system' ? saved : 'system';
+          var prefersDark =
+            pref === 'dark' ||
+            (pref === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          var theme = prefersDark ? 'dark' : 'light';
+          var root = document.documentElement;
+          root.setAttribute('data-theme', theme);
+          root.setAttribute('data-theme-pref', pref);
+          root.style.colorScheme = theme;
+        } catch (e) {
+          /* default styling applies */
+        }
+      })();
+    </script>
     <link rel="stylesheet" href="src/styles.css?v=20260709232703" />
     <script type="module" src="src/app.js"></script>
   </head>
@@ -31,6 +50,12 @@
           <a href="docs/pricing-assumptions.md">Assumptions</a>
           <a href="examples/scenarios.json">Scenarios</a>
         </nav>
+
+        <div class="theme-toggle" role="group" aria-label="Colour theme" data-theme-toggle>
+          <button type="button" data-theme-choice="system" aria-pressed="true">System</button>
+          <button type="button" data-theme-choice="light" aria-pressed="false">Light</button>
+          <button type="button" data-theme-choice="dark" aria-pressed="false">Dark</button>
+        </div>
       </header>
 
       <section class="hero" aria-labelledby="page-title">
