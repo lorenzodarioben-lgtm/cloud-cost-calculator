@@ -498,6 +498,35 @@
             <p class="pricing-note" data-pricing-note></p>
           </aside>
         </div>
+
+        <div class="workspace">
+          <section class="card panel scenarios-panel" aria-labelledby="scenarios-title">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">Scenarios</p>
+                <h3 id="scenarios-title">Saved scenarios</h3>
+              </div>
+            </div>
+
+            <form class="scenario-save" data-scenario-form>
+              <label class="sr-only" for="scenario-name">Scenario name</label>
+              <input
+                id="scenario-name"
+                name="scenario-name"
+                type="text"
+                maxlength="60"
+                autocomplete="off"
+                placeholder="Name this estimate (e.g. Production baseline)"
+              />
+              <button type="submit" class="primary-link" data-scenario-save>Save estimate</button>
+            </form>
+
+            <p class="scenario-empty" data-scenario-empty>
+              No saved scenarios yet. Save the current estimate to revisit or compare it later.
+            </p>
+            <ul class="scenario-list" data-scenario-list></ul>
+          </section>
+        </div>
       </section>
     </main>
   </body>

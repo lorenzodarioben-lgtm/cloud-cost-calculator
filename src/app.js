@@ -8,6 +8,13 @@ import {
 import { buildRecommendations } from './recommendations.js';
 import { createDefaultWorkload, listPresets, normalizeWorkload, presetWorkload } from './state.js';
 import {
+  deleteScenario,
+  loadScenarios,
+  renameScenario,
+  resolveStorage,
+  saveScenario,
+} from './scenarios.js';
+import {
   DEFAULT_REGION,
   PRICING_NOTES,
   getRate,
@@ -64,6 +71,15 @@ const regionTag = document.querySelector('[data-region-tag]');
 const presetButtons = document.querySelectorAll('[data-hours-preset]');
 const presetBar = document.querySelector('[data-preset-buttons]');
 const resetButton = document.querySelector('[data-reset]');
+const scenarioForm = document.querySelector('[data-scenario-form]');
+const scenarioNameInput = document.querySelector('#scenario-name');
+const scenarioList = document.querySelector('[data-scenario-list]');
+const scenarioEmpty = document.querySelector('[data-scenario-empty]');
+
+const scenarioStorage = resolveStorage();
+let editingScenarioId = null;
+
+const DATE_FORMATTER = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
 
 const STORAGE_KEY = 'cloud-cost-calculator-workload';
 
@@ -332,10 +348,131 @@ function syncRate(rateInput, serviceKey, optionId) {
   }
 }
 
+/* --- Scenario management --- */
+
+function scenarioMeta(scenario) {
+  const total = estimateWorkload(scenario.workload).total;
+  const savedAt = new Date(scenario.savedAt);
+  const when = Number.isNaN(savedAt.getTime()) ? '' : ` · saved ${DATE_FORMATTER.format(savedAt)}`;
+  return `${formatUsd(total)}/mo${when}`;
+}
+
+function actionButton(label, dataAttr, className = '') {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = label;
+  if (className) {
+    button.className = className;
+  }
+  button.setAttribute(dataAttr, '');
+  return button;
+}
+
+function buildScenarioRow(scenario) {
+  const li = document.createElement('li');
+  li.className = 'scenario';
+  li.dataset.id = scenario.id;
+
+  if (editingScenarioId === scenario.id) {
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = scenario.name;
+    input.maxLength = 60;
+    input.className = 'scenario-rename-input';
+    input.setAttribute('aria-label', 'New scenario name');
+
+    const save = actionButton('Save', 'data-rename-save');
+    const cancel = actionButton('Cancel', 'data-rename-cancel');
+
+    const commit = () => {
+      renameScenario(scenarioStorage, scenario.id, input.value);
+      editingScenarioId = null;
+      renderScenarios();
+    };
+    save.addEventListener('click', commit);
+    cancel.addEventListener('click', () => {
+      editingScenarioId = null;
+      renderScenarios();
+    });
+    input.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        commit();
+      } else if (event.key === 'Escape') {
+        editingScenarioId = null;
+        renderScenarios();
+      }
+    });
+
+    const actions = document.createElement('div');
+    actions.className = 'scenario-actions';
+    actions.append(save, cancel);
+    li.append(input, actions);
+    // focus the field after it is in the DOM
+    queueMicrotask(() => input.focus());
+    return li;
+  }
+
+  const main = document.createElement('div');
+  main.className = 'scenario-main';
+  const name = document.createElement('strong');
+  name.className = 'scenario-name';
+  name.textContent = scenario.name;
+  const meta = document.createElement('span');
+  meta.className = 'scenario-meta';
+  meta.textContent = scenarioMeta(scenario);
+  main.append(name, meta);
+
+  const actions = document.createElement('div');
+  actions.className = 'scenario-actions';
+  const load = actionButton('Load', 'data-load');
+  const rename = actionButton('Rename', 'data-rename');
+  const remove = actionButton('Delete', 'data-delete', 'danger');
+  load.addEventListener('click', () => {
+    writeWorkload(scenario.workload);
+    render();
+  });
+  rename.addEventListener('click', () => {
+    editingScenarioId = scenario.id;
+    renderScenarios();
+  });
+  remove.addEventListener('click', () => {
+    deleteScenario(scenarioStorage, scenario.id);
+    if (editingScenarioId === scenario.id) {
+      editingScenarioId = null;
+    }
+    renderScenarios();
+  });
+  actions.append(load, rename, remove);
+
+  li.append(main, actions);
+  return li;
+}
+
+function renderScenarios() {
+  const scenarios = loadScenarios(scenarioStorage);
+  scenarioEmpty.hidden = scenarios.length > 0;
+  scenarioList.replaceChildren();
+  scenarios.forEach((scenario) => scenarioList.append(buildScenarioRow(scenario)));
+}
+
 populateRegions(regionSelect);
 populatePresets();
 writeWorkload(loadWorkload());
 render();
+renderScenarios();
+
+scenarioForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const name = scenarioNameInput.value.trim();
+  if (!name) {
+    scenarioNameInput.focus();
+    return;
+  }
+  saveScenario(scenarioStorage, name, readWorkload());
+  scenarioNameInput.value = '';
+  renderScenarios();
+});
 
 form.addEventListener('input', render);
 
