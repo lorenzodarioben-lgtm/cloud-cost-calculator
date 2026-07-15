@@ -35,6 +35,9 @@ const rdsHoursInput = document.querySelector('#rds-hours');
 const rdsRateInput = document.querySelector('#rds-rate');
 const rdsStorageInput = document.querySelector('#rds-storage');
 const rdsStorageRateInput = document.querySelector('#rds-storage-rate');
+const dtEnabledInput = document.querySelector('#dataTransfer-enabled');
+const dtGbInput = document.querySelector('#dt-gb');
+const dtRateInput = document.querySelector('#dt-rate');
 const budgetInput = document.querySelector('#budget');
 const budgetMessage = document.querySelector('[data-budget-message]');
 const resultCard = document.querySelector('[data-result-card]');
@@ -48,7 +51,7 @@ const resetButton = document.querySelector('[data-reset]');
 const STORAGE_KEY = 'cloud-cost-calculator-workload';
 
 /** Optional services that can be toggled on/off from their section header. */
-const OPTIONAL_SERVICES = ['ebs', 's3', 'rds'];
+const OPTIONAL_SERVICES = ['ebs', 's3', 'rds', 'dataTransfer'];
 
 /** Visually and functionally disable a service section when it is switched off. */
 function reflectServiceEnabled(serviceId, enabled) {
@@ -148,6 +151,11 @@ function readWorkload() {
         storageGb: rdsStorageInput.value,
         storageRate: rdsStorageRateInput.value,
       },
+      dataTransfer: {
+        enabled: dtEnabledInput.checked,
+        outboundGb: dtGbInput.value,
+        rate: dtRateInput.value,
+      },
     },
   });
 }
@@ -179,6 +187,9 @@ function writeWorkload(workload) {
   rdsRateInput.value = normalized.services.rds.instanceRate;
   rdsStorageInput.value = normalized.services.rds.storageGb;
   rdsStorageRateInput.value = normalized.services.rds.storageRate;
+  dtEnabledInput.checked = normalized.services.dataTransfer.enabled;
+  dtGbInput.value = normalized.services.dataTransfer.outboundGb;
+  dtRateInput.value = normalized.services.dataTransfer.rate;
   budgetInput.value = normalized.budget;
 
   OPTIONAL_SERVICES.forEach((serviceId) => {
@@ -245,6 +256,7 @@ regionSelect.addEventListener('change', () => {
   syncRate(rdsRateInput, 'rds', rdsClassSelect.value);
   s3RequestRateInput.value = getScalarRate(region, 's3RequestPer1k');
   rdsStorageRateInput.value = getScalarRate(region, 'rdsStorageGbMonth');
+  dtRateInput.value = getScalarRate(region, 'dataTransferOutGb');
   render();
 });
 

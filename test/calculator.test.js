@@ -253,6 +253,35 @@ describe('RDS estimation', () => {
   });
 });
 
+describe('data transfer estimation', () => {
+  function withTransfer(dataTransfer) {
+    return baseWorkload({
+      services: {
+        ec2: { enabled: false },
+        ebs: { enabled: false },
+        dataTransfer: { enabled: true, ...dataTransfer },
+      },
+    });
+  }
+
+  it('prices outbound GB by the per-GB rate', () => {
+    const estimate = estimateWorkload(withTransfer({ outboundGb: 250, rate: 0.09 }));
+    assert.equal(estimate.serviceSubtotals.dataTransfer, 250 * 0.09);
+    assert.equal(estimate.lineItems[0].label, 'Outbound transfer');
+  });
+
+  it('reports zero cost for zero outbound transfer', () => {
+    const estimate = estimateWorkload(withTransfer({ outboundGb: 0, rate: 0.09 }));
+    assert.equal(estimate.serviceSubtotals.dataTransfer, 0);
+    assert.equal(estimate.lineItems[0].amount, 0);
+  });
+
+  it('is disabled by default', () => {
+    const estimate = estimateWorkload(baseWorkload());
+    assert.equal(estimate.serviceSubtotals.dataTransfer, undefined);
+  });
+});
+
 describe('formatting', () => {
   it('formats currency to two decimals', () => {
     assert.equal(formatUsd(9.992), '$9.99');

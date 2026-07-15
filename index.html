@@ -377,6 +377,37 @@
               </div>
             </div>
 
+            <div class="form-section" data-service-section="dataTransfer">
+              <div class="section-heading">
+                <span class="section-number">05</span>
+                <div>
+                  <h4>Data transfer</h4>
+                  <p>Optional. Simplified outbound (egress) estimate.</p>
+                </div>
+                <label class="service-toggle">
+                  <input type="checkbox" id="dataTransfer-enabled" name="dataTransfer-enabled" />
+                  <span>Include</span>
+                </label>
+              </div>
+
+              <div class="field-grid" data-service-fields="dataTransfer">
+                <div class="field">
+                  <label for="dt-gb">Outbound (GB / month)</label>
+                  <input id="dt-gb" name="dt-gb" type="number" min="0" step="1" inputmode="numeric" />
+                </div>
+
+                <div class="field">
+                  <label for="dt-rate">Rate / GB (USD)</label>
+                  <input id="dt-rate" name="dt-rate" type="number" min="0" step="0.0001" inputmode="decimal" />
+                </div>
+
+                <p class="field-hint field-full">
+                  Flat per-GB sample for internet egress. Real AWS transfer pricing is tiered and
+                  depends on destination and service; inbound and in-region transfer are excluded.
+                </p>
+              </div>
+            </div>
+
             <div class="form-section budget-section">
               <div class="section-heading">
                 <span class="section-number section-number--budget">$</span>

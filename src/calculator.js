@@ -146,6 +146,21 @@ export const SERVICE_DEFINITIONS = [
       return items;
     },
   },
+  {
+    id: 'dataTransfer',
+    label: 'Data transfer',
+    estimate(service) {
+      const outboundGb = clampZero(service.outboundGb);
+      const rate = clampZero(service.rate);
+      return [
+        {
+          label: 'Outbound transfer',
+          detail: `${formatQuantity(outboundGb)} GB × ${formatRate(rate)}/GB`,
+          amount: outboundGb * rate,
+        },
+      ];
+    },
+  },
 ];
 
 const SERVICE_LABELS = Object.freeze(

@@ -66,6 +66,11 @@ export function createDefaultWorkload() {
         storageGb: 20,
         storageRate: getScalarRate(DEFAULT_REGION, 'rdsStorageGbMonth'),
       },
+      dataTransfer: {
+        enabled: false,
+        outboundGb: 100,
+        rate: getScalarRate(DEFAULT_REGION, 'dataTransferOutGb'),
+      },
     },
   };
 }
@@ -89,6 +94,7 @@ export function normalizeWorkload(raw) {
       ebs: normalizeEbs(services.ebs, defaults.services.ebs),
       s3: normalizeS3(services.s3, defaults.services.s3),
       rds: normalizeRds(services.rds, defaults.services.rds),
+      dataTransfer: normalizeDataTransfer(services.dataTransfer, defaults.services.dataTransfer),
     },
   };
 }
@@ -155,6 +161,15 @@ function normalizeRds(raw, fallback) {
     instanceRate: clampZero(source.instanceRate, 0),
     storageGb: clampZero(source.storageGb, 0),
     storageRate: clampZero(source.storageRate, 0),
+  };
+}
+
+function normalizeDataTransfer(raw, fallback) {
+  const source = raw && typeof raw === 'object' ? raw : {};
+  return {
+    enabled: resolveEnabled(source.enabled, fallback.enabled),
+    outboundGb: clampZero(source.outboundGb, 0),
+    rate: clampZero(source.rate, 0),
   };
 }
 
