@@ -6,6 +6,7 @@ import {
   getBudgetMessage,
 } from './calculator.js';
 import { buildRecommendations } from './recommendations.js';
+import { createDonutSvg, createLegendItems } from './charts.js';
 import { createDefaultWorkload, listPresets, normalizeWorkload, presetWorkload } from './state.js';
 import {
   deleteScenario,
@@ -68,6 +69,10 @@ const budgetAmountOutput = document.querySelector('[data-budget-amount]');
 const remainingLabel = document.querySelector('[data-remaining-label]');
 const remainingOutput = document.querySelector('[data-remaining]');
 const recommendationList = document.querySelector('[data-recommendations]');
+const breakdownBody = document.querySelector('[data-breakdown-body]');
+const breakdownEmpty = document.querySelector('[data-breakdown-empty]');
+const breakdownChart = document.querySelector('[data-breakdown-chart]');
+const breakdownLegend = document.querySelector('[data-breakdown-legend]');
 const noteOutput = document.querySelector('[data-pricing-note]');
 const regionTag = document.querySelector('[data-region-tag]');
 const presetButtons = document.querySelectorAll('[data-hours-preset]');
@@ -332,6 +337,20 @@ function renderRecommendations(estimate) {
   });
 }
 
+function renderBreakdown(estimate) {
+  const hasData = estimate.total > 0 && estimate.lineItems.length > 0;
+  breakdownEmpty.hidden = hasData;
+  breakdownBody.hidden = !hasData;
+
+  breakdownChart.replaceChildren();
+  breakdownLegend.replaceChildren();
+  if (!hasData) {
+    return;
+  }
+  breakdownChart.append(createDonutSvg(estimate));
+  createLegendItems(estimate).forEach((item) => breakdownLegend.append(item));
+}
+
 function render() {
   clearPresetSelection();
   const workload = readWorkload();
@@ -341,6 +360,7 @@ function render() {
   renderLineItems(estimate);
   totalOutput.textContent = formatUsd(estimate.total);
   resultCard.dataset.status = estimate.budgetStatus;
+  renderBreakdown(estimate);
   renderBudgetHealth(estimate);
   renderRecommendations(estimate);
   regionTag.textContent = region.id;

@@ -2217,3 +2217,108 @@ button.danger:hover {
 }
 
 /* === End scenario comparison === */
+
+/* === Cost breakdown chart === */
+
+.breakdown {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 22px;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.breakdown-title {
+  margin: 0 0 14px;
+  font-size: 0.95rem;
+}
+
+.breakdown-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.breakdown-body {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+}
+
+.donut {
+  width: 128px;
+  height: 128px;
+  display: block;
+}
+
+.donut-segment {
+  transition: stroke-dasharray 320ms ease, stroke-dashoffset 320ms ease;
+}
+
+.donut-total {
+  font-size: 5.4px;
+  font-weight: 900;
+  fill: var(--text);
+}
+
+.donut-caption {
+  font-size: 2.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  fill: var(--muted);
+}
+
+.breakdown-legend {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.legend-item {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  gap: 10px;
+  align-items: center;
+  font-size: 0.86rem;
+}
+
+.legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+}
+
+.legend-label {
+  color: var(--muted-strong);
+  font-weight: 700;
+}
+
+.legend-value {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 420px) {
+  .breakdown-body {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .breakdown-legend {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .donut-segment {
+    transition: none;
+  }
+}
+
+/* === End cost breakdown chart === */
