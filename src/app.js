@@ -9,11 +9,13 @@ import { buildRecommendations } from './recommendations.js';
 import { createDefaultWorkload, listPresets, normalizeWorkload, presetWorkload } from './state.js';
 import {
   deleteScenario,
+  getScenario,
   loadScenarios,
   renameScenario,
   resolveStorage,
   saveScenario,
 } from './scenarios.js';
+import { compareEstimates } from './compare.js';
 import {
   DEFAULT_REGION,
   PRICING_NOTES,
@@ -75,6 +77,13 @@ const scenarioForm = document.querySelector('[data-scenario-form]');
 const scenarioNameInput = document.querySelector('#scenario-name');
 const scenarioList = document.querySelector('[data-scenario-list]');
 const scenarioEmpty = document.querySelector('[data-scenario-empty]');
+const compareTarget = document.querySelector('[data-compare-target]');
+const compareEmpty = document.querySelector('[data-compare-empty]');
+const compareBody = document.querySelector('[data-compare-body]');
+const compareSummary = document.querySelector('[data-compare-summary]');
+const compareRows = document.querySelector('[data-compare-rows]');
+const compareFoot = document.querySelector('[data-compare-foot]');
+const compareOtherLabel = document.querySelector('[data-compare-other-label]');
 
 const scenarioStorage = resolveStorage();
 let editingScenarioId = null;
@@ -338,6 +347,7 @@ function render() {
   noteOutput.textContent = `${region.label} · ${PRICING_NOTES.operatingSystem} · ${PRICING_NOTES.currency}. ${PRICING_NOTES.disclaimer}`;
 
   saveWorkload(workload);
+  renderComparison();
 }
 
 /** Sync an editable rate input to the sample rate for the current selection. */
@@ -454,6 +464,124 @@ function renderScenarios() {
   scenarioEmpty.hidden = scenarios.length > 0;
   scenarioList.replaceChildren();
   scenarios.forEach((scenario) => scenarioList.append(buildScenarioRow(scenario)));
+  populateCompareTargets(scenarios);
+  renderComparison();
+}
+
+/* --- Scenario comparison --- */
+
+function signedUsd(value) {
+  const sign = value > 0 ? '+' : value < 0 ? '-' : '';
+  return `${sign}${formatUsd(Math.abs(value))}`;
+}
+
+function diffDirection(value) {
+  return value > 0 ? 'up' : value < 0 ? 'down' : 'zero';
+}
+
+function populateCompareTargets(scenarios) {
+  const previous = compareTarget.value;
+  compareTarget.replaceChildren();
+  scenarios.forEach((scenario) => {
+    const option = document.createElement('option');
+    option.value = scenario.id;
+    option.textContent = scenario.name;
+    compareTarget.append(option);
+  });
+  if (scenarios.some((scenario) => scenario.id === previous)) {
+    compareTarget.value = previous;
+  }
+}
+
+function cell(text, className, label) {
+  const td = document.createElement('td');
+  td.textContent = text;
+  if (className) {
+    td.className = className;
+  }
+  if (label) {
+    td.dataset.label = label;
+  }
+  return td;
+}
+
+function diffCell(diff, percent, label = 'Difference') {
+  const td = document.createElement('td');
+  td.className = 'compare-diff';
+  td.dataset.dir = diffDirection(diff);
+  td.dataset.label = label;
+  const amount = document.createElement('span');
+  amount.textContent = signedUsd(diff);
+  td.append(amount);
+  if (percent !== null && percent !== undefined && Number.isFinite(percent) && diff !== 0) {
+    const pct = document.createElement('small');
+    pct.textContent = `${percent > 0 ? '+' : ''}${formatPercent(percent)}`;
+    td.append(pct);
+  }
+  return td;
+}
+
+function comparisonSummary(result, name) {
+  const active = formatUsd(result.active.total);
+  const other = formatUsd(result.other.total);
+  if (result.cheaper === 'equal') {
+    return `Current estimate matches “${name}” at ${active}/mo.`;
+  }
+  const magnitude = formatUsd(Math.abs(result.monthlyDiff));
+  const annual = formatUsd(Math.abs(result.annualDiff));
+  if (result.cheaper === 'active') {
+    const pct = result.monthlyPercent !== null ? ` (${formatPercent(Math.abs(result.monthlyPercent))} less)` : '';
+    return `Current estimate is ${magnitude}/mo cheaper than “${name}”${pct} — ${active} vs ${other}, about ${annual}/yr.`;
+  }
+  return `Current estimate is ${magnitude}/mo more than “${name}” — ${active} vs ${other}, about ${annual}/yr extra.`;
+}
+
+function renderComparison() {
+  const scenarios = loadScenarios(scenarioStorage);
+  if (scenarios.length === 0) {
+    compareEmpty.hidden = false;
+    compareBody.hidden = true;
+    return;
+  }
+
+  const scenario = getScenario(scenarioStorage, compareTarget.value) ?? scenarios[0];
+  compareTarget.value = scenario.id;
+  compareEmpty.hidden = true;
+  compareBody.hidden = false;
+  compareOtherLabel.textContent = scenario.name;
+
+  const active = estimateWorkload(readWorkload());
+  const other = estimateWorkload(scenario.workload);
+  const result = compareEstimates(active, other);
+
+  compareSummary.textContent = comparisonSummary(result, scenario.name);
+
+  compareRows.replaceChildren();
+  result.services.forEach((row) => {
+    const tr = document.createElement('tr');
+    tr.append(
+      cell(row.label, 'compare-service'),
+      cell(formatUsd(row.active), 'num', 'Current'),
+      cell(formatUsd(row.other), 'num', 'Saved'),
+      diffCell(row.diff, row.percent),
+    );
+    compareRows.append(tr);
+  });
+
+  compareFoot.replaceChildren();
+  compareFoot.append(
+    footRow('Monthly total', formatUsd(result.active.total), formatUsd(result.other.total), result.monthlyDiff, result.monthlyPercent),
+    footRow('Annual total', formatUsd(result.active.annual), formatUsd(result.other.annual), result.annualDiff, result.monthlyPercent),
+  );
+}
+
+function footRow(label, activeText, otherText, diff, percent) {
+  const tr = document.createElement('tr');
+  const th = document.createElement('th');
+  th.scope = 'row';
+  th.textContent = label;
+  tr.append(th, cell(activeText, 'num', 'Current'), cell(otherText, 'num', 'Saved'), diffCell(diff, percent));
+  return tr;
 }
 
 populateRegions(regionSelect);
@@ -473,6 +601,8 @@ scenarioForm.addEventListener('submit', (event) => {
   scenarioNameInput.value = '';
   renderScenarios();
 });
+
+compareTarget.addEventListener('change', renderComparison);
 
 form.addEventListener('input', render);
 

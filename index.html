@@ -526,6 +526,40 @@
             </p>
             <ul class="scenario-list" data-scenario-list></ul>
           </section>
+
+          <section class="card panel compare-panel" aria-labelledby="compare-title">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">Compare</p>
+                <h3 id="compare-title">Scenario comparison</h3>
+              </div>
+              <div class="field compare-target-field">
+                <label class="sr-only" for="compare-target">Compare current estimate against</label>
+                <select id="compare-target" data-compare-target></select>
+              </div>
+            </div>
+
+            <p class="compare-empty" data-compare-empty>
+              Save at least one scenario to compare it against the current estimate.
+            </p>
+
+            <div class="compare-body" data-compare-body hidden>
+              <p class="compare-summary" data-compare-summary aria-live="polite"></p>
+              <table class="compare-table">
+                <caption class="sr-only">Per-service cost comparison</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Service</th>
+                    <th scope="col">Current</th>
+                    <th scope="col" data-compare-other-label>Saved</th>
+                    <th scope="col">Difference</th>
+                  </tr>
+                </thead>
+                <tbody data-compare-rows></tbody>
+                <tfoot data-compare-foot></tfoot>
+              </table>
+            </div>
+          </section>
         </div>
       </section>
     </main>
