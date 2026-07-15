@@ -17,6 +17,8 @@ import {
   saveScenario,
 } from './scenarios.js';
 import { compareEstimates } from './compare.js';
+import { buildFilename, parseImport, toCsv, toJson } from './export.js';
+import { buildShareUrl, hasShareParam, parseShareParam } from './share.js';
 import {
   DEFAULT_REGION,
   PRICING_NOTES,
@@ -89,6 +91,11 @@ const compareSummary = document.querySelector('[data-compare-summary]');
 const compareRows = document.querySelector('[data-compare-rows]');
 const compareFoot = document.querySelector('[data-compare-foot]');
 const compareOtherLabel = document.querySelector('[data-compare-other-label]');
+const exportJsonButton = document.querySelector('[data-export-json]');
+const exportCsvButton = document.querySelector('[data-export-csv]');
+const copyLinkButton = document.querySelector('[data-copy-link]');
+const importInput = document.querySelector('[data-import]');
+const shareFeedback = document.querySelector('[data-share-feedback]');
 
 const scenarioStorage = resolveStorage();
 let editingScenarioId = null;
@@ -604,11 +611,94 @@ function footRow(label, activeText, otherText, diff, percent) {
   return tr;
 }
 
+/* --- Export, import, and sharing --- */
+
+function setShareFeedback(message, kind = 'info') {
+  shareFeedback.textContent = message;
+  shareFeedback.dataset.kind = kind;
+}
+
+function downloadBlob(contents, mimeType, filename) {
+  const blob = new Blob([contents], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  // Release the object URL on the next tick so the download can start first.
+  setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+function exportJson() {
+  const filename = buildFilename('estimate', 'json');
+  downloadBlob(toJson(readWorkload()), 'application/json', filename);
+  setShareFeedback(`Exported ${filename}.`, 'success');
+}
+
+function exportCsv() {
+  const filename = buildFilename('estimate', 'csv');
+  downloadBlob(toCsv(estimateWorkload(readWorkload())), 'text/csv', filename);
+  setShareFeedback(`Exported ${filename}.`, 'success');
+}
+
+async function importJsonFile(file) {
+  if (!file) {
+    return;
+  }
+  try {
+    const text = await file.text();
+    const result = parseImport(text);
+    if (!result.ok) {
+      setShareFeedback(result.error, 'error');
+      return;
+    }
+    writeWorkload(result.workload);
+    render();
+    setShareFeedback(
+      result.name ? `Imported “${result.name}”.` : 'Imported estimate.',
+      'success',
+    );
+  } catch {
+    setShareFeedback('Could not read that file.', 'error');
+  }
+}
+
+async function copyShareLink() {
+  const url = buildShareUrl(readWorkload(), window.location.origin + window.location.pathname);
+  try {
+    await navigator.clipboard.writeText(url);
+    setShareFeedback('Share link copied to clipboard.', 'success');
+  } catch {
+    // Clipboard may be blocked (insecure context); surface the link instead.
+    setShareFeedback(`Copy this link: ${url}`, 'info');
+  }
+}
+
+/* --- Initialization --- */
+
 populateRegions(regionSelect);
 populatePresets();
-writeWorkload(loadWorkload());
+
+const sharedWorkload = parseShareParam(window.location.search);
+writeWorkload(sharedWorkload ?? loadWorkload());
 render();
 renderScenarios();
+
+if (sharedWorkload) {
+  setShareFeedback('Loaded a shared estimate from the link.', 'success');
+} else if (hasShareParam(window.location.search)) {
+  setShareFeedback('That share link was invalid, so your saved estimate is shown.', 'error');
+}
+
+exportJsonButton.addEventListener('click', exportJson);
+exportCsvButton.addEventListener('click', exportCsv);
+copyLinkButton.addEventListener('click', copyShareLink);
+importInput.addEventListener('change', () => {
+  importJsonFile(importInput.files[0]);
+  importInput.value = '';
+});
 
 scenarioForm.addEventListener('submit', (event) => {
   event.preventDefault();

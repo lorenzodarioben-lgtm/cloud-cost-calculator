@@ -571,6 +571,27 @@
               </table>
             </div>
           </section>
+
+          <section class="card panel share-panel" aria-labelledby="share-title">
+            <div class="panel-head">
+              <div>
+                <p class="section-kicker">Export &amp; share</p>
+                <h3 id="share-title">Take this estimate with you</h3>
+              </div>
+            </div>
+
+            <div class="share-actions">
+              <button type="button" class="secondary-link" data-export-json>Export JSON</button>
+              <button type="button" class="secondary-link" data-export-csv>Export CSV</button>
+              <button type="button" class="secondary-link" data-copy-link>Copy share link</button>
+              <label class="import-label secondary-link">
+                Import JSON
+                <input type="file" accept="application/json,.json" data-import class="sr-only" />
+              </label>
+            </div>
+
+            <p class="share-feedback" data-share-feedback role="status" aria-live="polite"></p>
+          </section>
         </div>
       </section>
     </main>
