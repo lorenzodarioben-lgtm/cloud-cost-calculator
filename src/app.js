@@ -6,7 +6,7 @@ import {
   getBudgetMessage,
 } from './calculator.js';
 import { buildRecommendations } from './recommendations.js';
-import { createDefaultWorkload, normalizeWorkload } from './state.js';
+import { createDefaultWorkload, listPresets, normalizeWorkload, presetWorkload } from './state.js';
 import {
   DEFAULT_REGION,
   PRICING_NOTES,
@@ -62,6 +62,7 @@ const recommendationList = document.querySelector('[data-recommendations]');
 const noteOutput = document.querySelector('[data-pricing-note]');
 const regionTag = document.querySelector('[data-region-tag]');
 const presetButtons = document.querySelectorAll('[data-hours-preset]');
+const presetBar = document.querySelector('[data-preset-buttons]');
 const resetButton = document.querySelector('[data-reset]');
 
 const STORAGE_KEY = 'cloud-cost-calculator-workload';
@@ -110,6 +111,34 @@ function populateServiceOptions(select, options, preferredValue) {
 
 function currentRegion() {
   return regionSelect.value || DEFAULT_REGION;
+}
+
+function populatePresets() {
+  presetBar.replaceChildren();
+  listPresets().forEach((preset) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'preset-chip';
+    button.dataset.preset = preset.id;
+    button.setAttribute('aria-pressed', 'false');
+    button.title = preset.description;
+    button.textContent = preset.name;
+    button.addEventListener('click', () => applyPreset(preset.id, button));
+    presetBar.append(button);
+  });
+}
+
+function applyPreset(presetId, button) {
+  writeWorkload(presetWorkload(presetId, currentRegion()));
+  render();
+  button.setAttribute('aria-pressed', 'true');
+}
+
+/** Deselect any active preset chip (called whenever the config diverges). */
+function clearPresetSelection() {
+  presetBar
+    .querySelectorAll('[data-preset]')
+    .forEach((button) => button.setAttribute('aria-pressed', 'false'));
 }
 
 function loadWorkload() {
@@ -279,6 +308,7 @@ function renderRecommendations(estimate) {
 }
 
 function render() {
+  clearPresetSelection();
   const workload = readWorkload();
   const estimate = estimateWorkload(workload);
   const region = getRegion(estimate.region);
@@ -303,6 +333,7 @@ function syncRate(rateInput, serviceKey, optionId) {
 }
 
 populateRegions(regionSelect);
+populatePresets();
 writeWorkload(loadWorkload());
 render();
 

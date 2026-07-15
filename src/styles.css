@@ -693,6 +693,39 @@ button:hover {
   grid-column: 1 / -1;
 }
 
+.preset-bar {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.preset-bar-label {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.preset-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.preset-chip {
+  min-height: 38px;
+  padding: 0 14px;
+  color: var(--muted-strong);
+  font-size: 0.82rem;
+}
+
+.preset-chip[aria-pressed="true"] {
+  color: #03111f;
+  background: linear-gradient(135deg, var(--accent-strong), var(--green));
+  border-color: transparent;
+}
+
 .region-field {
   margin-bottom: 20px;
 }

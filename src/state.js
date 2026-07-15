@@ -8,7 +8,7 @@
  */
 
 import { clampCount, clampRange, clampZero } from './validation.js';
-import { DEFAULT_REGION, DEFAULTS, getRate, getScalarRate } from './pricing.js';
+import { DEFAULT_REGION, DEFAULTS, getRate, getRegion, getScalarRate } from './pricing.js';
 
 /** Resolve a service's enabled flag: honour an explicit boolean, else default. */
 function resolveEnabled(value, fallbackEnabled) {
@@ -199,4 +199,133 @@ export function isWorkloadLike(value) {
 export function countEnabledServices(workload) {
   const normalized = normalizeWorkload(workload);
   return Object.values(normalized.services).filter((service) => service.enabled).length;
+}
+
+/**
+ * Complete workload presets. Each spec lists the shape of every enabled
+ * service (without rates); rates are resolved from the target region so a
+ * preset works correctly regardless of the currently selected region.
+ */
+const PRESET_SPECS = [
+  {
+    id: 'dev',
+    name: 'Small development',
+    description: 'One small instance for part-time development work.',
+    budget: 10,
+    ec2: { instanceType: 't3.micro', quantity: 1, hours: 40 },
+    ebs: { volumeType: 'gp3', volumes: 1, sizeGb: 20 },
+  },
+  {
+    id: 'portfolio',
+    name: 'Portfolio web app',
+    description: 'An always-on small instance with storage, S3 hosting, and light egress.',
+    budget: 25,
+    ec2: { instanceType: 't3.small', quantity: 1, hours: 730 },
+    ebs: { volumeType: 'gp3', volumes: 1, sizeGb: 30 },
+    s3: { storageClass: 'standard', storageGb: 25, requests: 500_000 },
+    dataTransfer: { outboundGb: 50 },
+  },
+  {
+    id: 'production',
+    name: 'Small production app',
+    description: 'Redundant compute, a managed database, storage, and moderate egress.',
+    budget: 120,
+    ec2: { instanceType: 't3.medium', quantity: 2, hours: 730 },
+    ebs: { volumeType: 'gp3', volumes: 2, sizeGb: 50 },
+    s3: { storageClass: 'standard', storageGb: 100, requests: 2_000_000 },
+    rds: { engine: 'postgres', instanceClass: 'db.t3.small', quantity: 1, hours: 730, storageGb: 50 },
+    dataTransfer: { outboundGb: 200 },
+  },
+  {
+    id: 'data-heavy',
+    name: 'Data-heavy app',
+    description: 'Large compute and database with heavy object storage and transfer.',
+    budget: 600,
+    ec2: { instanceType: 't3.large', quantity: 3, hours: 730 },
+    ebs: { volumeType: 'gp3', volumes: 4, sizeGb: 200 },
+    s3: { storageClass: 'standard', storageGb: 2000, requests: 20_000_000 },
+    rds: { engine: 'postgres', instanceClass: 'db.m5.large', quantity: 2, hours: 730, storageGb: 500 },
+    dataTransfer: { outboundGb: 2000 },
+  },
+];
+
+/** Preset metadata for building selection UI. */
+export function listPresets() {
+  return PRESET_SPECS.map(({ id, name, description }) => ({ id, name, description }));
+}
+
+/**
+ * Build a complete workload from a preset, resolving every rate from the given
+ * region. Services not named by the preset are disabled (but keep sensible,
+ * region-correct defaults for when they are re-enabled). Unknown preset ids
+ * fall back to the default workload.
+ */
+export function presetWorkload(presetId, region = DEFAULT_REGION) {
+  const spec = PRESET_SPECS.find((preset) => preset.id === presetId);
+  const regionId = getRegion(region).id;
+  const workload = createDefaultWorkload();
+  workload.region = regionId;
+
+  // Ensure every service carries region-correct rates before applying the spec.
+  workload.services.ec2.rate = getRate(regionId, 'ec2', workload.services.ec2.instanceType);
+  workload.services.ebs.rate = getRate(regionId, 'ebs', workload.services.ebs.volumeType);
+  workload.services.s3.rate = getRate(regionId, 's3', workload.services.s3.storageClass);
+  workload.services.s3.requestRate = getScalarRate(regionId, 's3RequestPer1k');
+  workload.services.rds.instanceRate = getRate(regionId, 'rds', workload.services.rds.instanceClass);
+  workload.services.rds.storageRate = getScalarRate(regionId, 'rdsStorageGbMonth');
+  workload.services.dataTransfer.rate = getScalarRate(regionId, 'dataTransferOutGb');
+
+  if (!spec) {
+    return workload;
+  }
+
+  workload.budget = spec.budget;
+
+  workload.services.ec2 = {
+    enabled: true,
+    instanceType: spec.ec2.instanceType,
+    quantity: spec.ec2.quantity,
+    hours: spec.ec2.hours,
+    rate: getRate(regionId, 'ec2', spec.ec2.instanceType),
+  };
+
+  applyOptional(workload, 'ebs', Boolean(spec.ebs), () => ({
+    volumeType: spec.ebs.volumeType,
+    volumes: spec.ebs.volumes,
+    sizeGb: spec.ebs.sizeGb,
+    rate: getRate(regionId, 'ebs', spec.ebs.volumeType),
+  }));
+
+  applyOptional(workload, 's3', Boolean(spec.s3), () => ({
+    storageClass: spec.s3.storageClass,
+    storageGb: spec.s3.storageGb,
+    rate: getRate(regionId, 's3', spec.s3.storageClass),
+    requests: spec.s3.requests,
+    requestRate: getScalarRate(regionId, 's3RequestPer1k'),
+  }));
+
+  applyOptional(workload, 'rds', Boolean(spec.rds), () => ({
+    engine: spec.rds.engine,
+    instanceClass: spec.rds.instanceClass,
+    quantity: spec.rds.quantity,
+    hours: spec.rds.hours,
+    instanceRate: getRate(regionId, 'rds', spec.rds.instanceClass),
+    storageGb: spec.rds.storageGb,
+    storageRate: getScalarRate(regionId, 'rdsStorageGbMonth'),
+  }));
+
+  applyOptional(workload, 'dataTransfer', Boolean(spec.dataTransfer), () => ({
+    outboundGb: spec.dataTransfer.outboundGb,
+    rate: getScalarRate(regionId, 'dataTransferOutGb'),
+  }));
+
+  return normalizeWorkload(workload);
+}
+
+function applyOptional(workload, serviceId, enabled, buildFields) {
+  if (enabled) {
+    workload.services[serviceId] = { enabled: true, ...buildFields() };
+  } else {
+    workload.services[serviceId].enabled = false;
+  }
 }
