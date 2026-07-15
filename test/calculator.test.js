@@ -1,11 +1,24 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import {
+  budgetStateLabel,
   estimateWorkload,
+  formatPercent,
   formatUsd,
   formatRate,
   getBudgetMessage,
 } from '../src/calculator.js';
+
+// A single-service workload whose EC2 total is `hours * rate`, everything else off.
+function onlyEc2(hours, rate, budget) {
+  return {
+    budget,
+    services: {
+      ec2: { enabled: true, instanceType: 't3.micro', quantity: 1, hours, rate },
+      ebs: { enabled: false },
+    },
+  };
+}
 
 function baseWorkload(overrides = {}) {
   return {
@@ -27,7 +40,7 @@ describe('estimateWorkload', () => {
     assert.equal(estimate.serviceSubtotals.ebs, 2.4);
     assert.equal(Number(estimate.total.toFixed(2)), 9.99);
     assert.equal(estimate.overBudget, false);
-    assert.equal(estimate.budgetStatus, 'under');
+    assert.equal(estimate.budgetStatus, 'healthy');
   });
 
   it('multiplies EC2 cost by instance quantity', () => {
@@ -136,7 +149,7 @@ describe('estimateWorkload', () => {
     const estimate = estimateWorkload(baseWorkload({ budget: 0 }));
 
     assert.equal(estimate.budgetStatus, 'no-budget');
-    assert.equal(getBudgetMessage(estimate), 'Add a monthly budget to enable budget warnings.');
+    assert.equal(getBudgetMessage(estimate), 'Add a monthly budget to track budget health.');
   });
 
   it('coerces negative, string, NaN, and infinite inputs to zero', () => {
@@ -279,6 +292,53 @@ describe('data transfer estimation', () => {
   it('is disabled by default', () => {
     const estimate = estimateWorkload(baseWorkload());
     assert.equal(estimate.serviceSubtotals.dataTransfer, undefined);
+  });
+});
+
+describe('budget health metrics', () => {
+  it('computes annualized total, percent used, remaining, and overage', () => {
+    const estimate = estimateWorkload(onlyEc2(50, 1, 100));
+
+    assert.equal(estimate.total, 50);
+    assert.equal(estimate.annualTotal, 600);
+    assert.equal(estimate.budgetUsedPercent, 50);
+    assert.equal(estimate.remaining, 50);
+    assert.equal(estimate.overage, 0);
+  });
+
+  it('classifies healthy / watch / risk / over at the right boundaries', () => {
+    assert.equal(estimateWorkload(onlyEc2(50, 1, 100)).budgetStatus, 'healthy');
+    assert.equal(estimateWorkload(onlyEc2(74.9, 1, 100)).budgetStatus, 'healthy');
+    assert.equal(estimateWorkload(onlyEc2(75, 1, 100)).budgetStatus, 'watch');
+    assert.equal(estimateWorkload(onlyEc2(89.9, 1, 100)).budgetStatus, 'watch');
+    assert.equal(estimateWorkload(onlyEc2(90, 1, 100)).budgetStatus, 'risk');
+    assert.equal(estimateWorkload(onlyEc2(100, 1, 100)).budgetStatus, 'risk');
+    assert.equal(estimateWorkload(onlyEc2(100.1, 1, 100)).budgetStatus, 'over');
+  });
+
+  it('reports overage and null percent appropriately', () => {
+    const over = estimateWorkload(onlyEc2(120, 1, 100));
+    assert.equal(over.overage, 20);
+    assert.equal(over.remaining, -20);
+
+    const noBudget = estimateWorkload(onlyEc2(50, 1, 0));
+    assert.equal(noBudget.budgetUsedPercent, null);
+    assert.equal(noBudget.budgetStatus, 'no-budget');
+  });
+
+  it('produces human-friendly status labels and messages', () => {
+    assert.equal(budgetStateLabel('over'), 'Over budget');
+    assert.equal(budgetStateLabel('healthy'), 'Healthy');
+    assert.match(getBudgetMessage(estimateWorkload(onlyEc2(120, 1, 100))), /Over budget by/);
+    assert.match(getBudgetMessage(estimateWorkload(onlyEc2(50, 1, 100))), /Using .* remaining/);
+  });
+});
+
+describe('formatPercent', () => {
+  it('rounds to one decimal and tolerates null', () => {
+    assert.equal(formatPercent(75), '75%');
+    assert.equal(formatPercent(66.666), '66.7%');
+    assert.equal(formatPercent(null), '0%');
   });
 });
 

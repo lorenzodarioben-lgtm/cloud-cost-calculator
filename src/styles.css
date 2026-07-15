@@ -864,10 +864,17 @@ select option {
   line-height: 1.5;
 }
 
-.result-card[data-status="under"] .budget-message {
+.result-card[data-status="healthy"] .budget-message,
+.result-card[data-status="watch"] .budget-message {
   color: var(--green);
   border: 1px solid rgba(110, 231, 183, 0.14);
   background: rgba(110, 231, 183, 0.12);
+}
+
+.result-card[data-status="risk"] .budget-message {
+  color: var(--yellow);
+  border: 1px solid rgba(250, 204, 21, 0.18);
+  background: rgba(250, 204, 21, 0.12);
 }
 
 .result-card[data-status="over"] .budget-message {
@@ -1711,3 +1718,198 @@ select {
 }
 
 /* === End design pass 4 final production polish === */
+
+/* === Budget health, recommendations, and service states === */
+
+:root {
+  --orange: #fb923c;
+}
+
+.total-annual {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.total-annual span {
+  color: var(--muted-strong);
+  font-weight: 850;
+}
+
+.budget-health {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 22px;
+  background: rgba(15, 23, 42, 0.5);
+}
+
+.health-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--muted-strong);
+  font-size: 0.74rem;
+  font-weight: 950;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.result-card[data-status="healthy"] .status-badge {
+  color: #052e1a;
+  background: var(--green);
+  border-color: transparent;
+}
+
+.result-card[data-status="watch"] .status-badge {
+  color: #052e1a;
+  background: #bbf7d0;
+  border-color: transparent;
+}
+
+.result-card[data-status="risk"] .status-badge {
+  color: #3a2a05;
+  background: var(--yellow);
+  border-color: transparent;
+}
+
+.result-card[data-status="over"] .status-badge {
+  color: #3a0510;
+  background: var(--red);
+  border-color: transparent;
+}
+
+.result-card[data-status="no-budget"] .status-badge {
+  color: #1e1b3a;
+  background: var(--violet);
+  border-color: transparent;
+}
+
+.health-percent {
+  font-size: 1.05rem;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+.progress {
+  position: relative;
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.progress-fill {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent-strong), var(--green));
+  transition: width 240ms ease;
+}
+
+.result-card[data-status="watch"] .progress-fill {
+  background: linear-gradient(90deg, var(--green), var(--yellow));
+}
+
+.result-card[data-status="risk"] .progress-fill {
+  background: linear-gradient(90deg, var(--yellow), var(--orange));
+}
+
+.result-card[data-status="over"] .progress-fill {
+  background: linear-gradient(90deg, var(--orange), var(--red));
+}
+
+.health-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.health-grid div {
+  display: grid;
+  gap: 3px;
+}
+
+.health-grid span {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.health-grid strong {
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.recommendations {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 18px;
+}
+
+.recommendations h4 {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+}
+
+.recommendation-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.recommendation {
+  display: grid;
+  gap: 4px;
+  padding: 13px 15px;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-left-width: 3px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+.recommendation strong {
+  font-size: 0.92rem;
+}
+
+.recommendation span {
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.recommendation[data-severity="critical"] {
+  border-left-color: var(--red);
+}
+
+.recommendation[data-severity="warning"] {
+  border-left-color: var(--yellow);
+}
+
+.recommendation[data-severity="positive"] {
+  border-left-color: var(--green);
+}
+
+.recommendation[data-severity="info"] {
+  border-left-color: var(--accent);
+}
+
+/* === End budget health, recommendations, and service states === */

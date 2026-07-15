@@ -430,7 +430,7 @@
             </div>
           </form>
 
-          <aside class="card result-card" data-result-card data-status="under" aria-live="polite">
+          <aside class="card result-card" data-result-card data-status="healthy">
             <div class="result-glow"></div>
 
             <div class="card-heading result-heading">
@@ -442,13 +442,47 @@
             </div>
 
             <div class="total-block">
-              <p class="total-label">Estimated total</p>
+              <p class="total-label">Estimated monthly total</p>
               <p class="total-value" data-total>$0.00</p>
+              <p class="total-annual"><span data-annual>$0.00</span> per year</p>
             </div>
 
             <ul class="line-items" data-line-items></ul>
 
-            <p class="budget-message" data-budget-message></p>
+            <div class="budget-health" aria-label="Budget health">
+              <div class="health-head">
+                <span class="status-badge" data-status-badge>Healthy</span>
+                <span class="health-percent" data-budget-percent>—</span>
+              </div>
+              <div
+                class="progress"
+                role="progressbar"
+                aria-label="Budget used"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow="0"
+                aria-valuetext="No budget set"
+                data-progress
+              >
+                <span class="progress-fill" data-progress-fill></span>
+              </div>
+              <p class="budget-message" data-budget-message aria-live="polite"></p>
+              <div class="health-grid">
+                <div>
+                  <span>Monthly budget</span>
+                  <strong data-budget-amount>$0.00</strong>
+                </div>
+                <div>
+                  <span data-remaining-label>Remaining</span>
+                  <strong data-remaining>$0.00</strong>
+                </div>
+              </div>
+            </div>
+
+            <section class="recommendations" aria-label="Cost recommendations">
+              <h4>Recommendations</h4>
+              <ul class="recommendation-list" data-recommendations></ul>
+            </section>
 
             <div class="mini-dashboard" aria-label="Estimate summary labels">
               <span data-region-tag>us-east-1</span>

@@ -1,4 +1,11 @@
-import { estimateWorkload, formatUsd, getBudgetMessage } from './calculator.js';
+import {
+  budgetStateLabel,
+  estimateWorkload,
+  formatPercent,
+  formatUsd,
+  getBudgetMessage,
+} from './calculator.js';
+import { buildRecommendations } from './recommendations.js';
 import { createDefaultWorkload, normalizeWorkload } from './state.js';
 import {
   DEFAULT_REGION,
@@ -43,6 +50,15 @@ const budgetMessage = document.querySelector('[data-budget-message]');
 const resultCard = document.querySelector('[data-result-card]');
 const lineItems = document.querySelector('[data-line-items]');
 const totalOutput = document.querySelector('[data-total]');
+const annualOutput = document.querySelector('[data-annual]');
+const statusBadge = document.querySelector('[data-status-badge]');
+const budgetPercentOutput = document.querySelector('[data-budget-percent]');
+const progressEl = document.querySelector('[data-progress]');
+const progressFill = document.querySelector('[data-progress-fill]');
+const budgetAmountOutput = document.querySelector('[data-budget-amount]');
+const remainingLabel = document.querySelector('[data-remaining-label]');
+const remainingOutput = document.querySelector('[data-remaining]');
+const recommendationList = document.querySelector('[data-recommendations]');
 const noteOutput = document.querySelector('[data-pricing-note]');
 const regionTag = document.querySelector('[data-region-tag]');
 const presetButtons = document.querySelectorAll('[data-hours-preset]');
@@ -209,10 +225,57 @@ function buildLineItem(label, value) {
 
 function renderLineItems(estimate) {
   lineItems.replaceChildren();
+  if (estimate.lineItems.length === 0) {
+    lineItems.append(buildLineItem('No services enabled', formatUsd(0)));
+    return;
+  }
   estimate.lineItems.forEach((item) => {
     lineItems.append(buildLineItem(item.label, formatUsd(item.amount)));
   });
-  lineItems.append(buildLineItem('Budget', formatUsd(estimate.budget)));
+}
+
+function renderBudgetHealth(estimate) {
+  annualOutput.textContent = formatUsd(estimate.annualTotal);
+  statusBadge.textContent = budgetStateLabel(estimate.budgetStatus);
+  budgetAmountOutput.textContent = formatUsd(estimate.budget);
+
+  const hasBudget = estimate.budgetStatus !== 'no-budget';
+  budgetPercentOutput.textContent = hasBudget ? formatPercent(estimate.budgetUsedPercent) : '—';
+
+  const percent = hasBudget ? Math.min(100, estimate.budgetUsedPercent) : 0;
+  progressFill.style.width = `${percent}%`;
+  progressEl.setAttribute('aria-valuenow', String(Math.round(percent)));
+  progressEl.setAttribute(
+    'aria-valuetext',
+    hasBudget
+      ? `${formatPercent(estimate.budgetUsedPercent)} of budget used`
+      : 'No budget set',
+  );
+
+  if (estimate.overBudget) {
+    remainingLabel.textContent = 'Over by';
+    remainingOutput.textContent = formatUsd(estimate.overage);
+  } else {
+    remainingLabel.textContent = 'Remaining';
+    remainingOutput.textContent = hasBudget ? formatUsd(estimate.remaining) : '—';
+  }
+
+  budgetMessage.textContent = getBudgetMessage(estimate);
+}
+
+function renderRecommendations(estimate) {
+  recommendationList.replaceChildren();
+  buildRecommendations(estimate).forEach((recommendation) => {
+    const item = document.createElement('li');
+    item.className = 'recommendation';
+    item.dataset.severity = recommendation.severity;
+    const title = document.createElement('strong');
+    title.textContent = recommendation.title;
+    const detail = document.createElement('span');
+    detail.textContent = recommendation.detail;
+    item.append(title, detail);
+    recommendationList.append(item);
+  });
 }
 
 function render() {
@@ -222,8 +285,9 @@ function render() {
 
   renderLineItems(estimate);
   totalOutput.textContent = formatUsd(estimate.total);
-  budgetMessage.textContent = getBudgetMessage(estimate);
   resultCard.dataset.status = estimate.budgetStatus;
+  renderBudgetHealth(estimate);
+  renderRecommendations(estimate);
   regionTag.textContent = region.id;
   noteOutput.textContent = `${region.label} · ${PRICING_NOTES.operatingSystem} · ${PRICING_NOTES.currency}. ${PRICING_NOTES.disclaimer}`;
 

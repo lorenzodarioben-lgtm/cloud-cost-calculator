@@ -44,6 +44,12 @@ export function formatQuantity(value) {
   return QUANTITY_FORMATTER.format(clampZero(value));
 }
 
+/** Format a percentage (0–n) with one decimal, tolerant of null. */
+export function formatPercent(value) {
+  const number = Number.isFinite(value) ? value : 0;
+  return `${Math.round(number * 10) / 10}%`;
+}
+
 /** Display names for representative RDS engine profiles. */
 const RDS_ENGINE_LABELS = Object.freeze({
   postgres: 'PostgreSQL',
@@ -210,7 +216,9 @@ export function estimateWorkload(input) {
   const total = services.reduce((sum, service) => sum + service.amount, 0);
   const budget = clampZero(workload.budget);
   const remaining = budget - total;
+  const overage = Math.max(0, total - budget);
   const overBudget = budget > 0 && total > budget;
+  const budgetUsedPercent = budget > 0 ? (total / budget) * 100 : null;
 
   return {
     region: workload.region,
@@ -219,22 +227,62 @@ export function estimateWorkload(input) {
     serviceSubtotals,
     services,
     total,
+    annualTotal: total * 12,
     budget,
+    budgetUsedPercent,
     remaining,
+    overage,
     overBudget,
-    budgetStatus: budget <= 0 ? 'no-budget' : overBudget ? 'over' : 'under',
+    budgetStatus: classifyBudget(budget, budgetUsedPercent),
   };
+}
+
+/**
+ * Budget health thresholds (percent of budget used).
+ * healthy < 75 <= watch < 90 <= risk <= 100 < over.
+ */
+export const BUDGET_THRESHOLDS = Object.freeze({ watch: 75, risk: 90, over: 100 });
+
+function classifyBudget(budget, percent) {
+  if (budget <= 0 || percent === null) {
+    return 'no-budget';
+  }
+  if (percent > BUDGET_THRESHOLDS.over) {
+    return 'over';
+  }
+  if (percent >= BUDGET_THRESHOLDS.risk) {
+    return 'risk';
+  }
+  if (percent >= BUDGET_THRESHOLDS.watch) {
+    return 'watch';
+  }
+  return 'healthy';
+}
+
+const BUDGET_STATE_LABELS = Object.freeze({
+  'no-budget': 'No budget set',
+  healthy: 'Healthy',
+  watch: 'Watch',
+  risk: 'At risk',
+  over: 'Over budget',
+});
+
+/** Short label for a budget status, safe for text-only (non-colour) signalling. */
+export function budgetStateLabel(status) {
+  return BUDGET_STATE_LABELS[status] ?? status;
 }
 
 /** Plain-language budget summary derived from an estimate. */
 export function getBudgetMessage(estimate) {
-  if (estimate.budget <= 0) {
-    return 'Add a monthly budget to enable budget warnings.';
+  if (estimate.budgetStatus === 'no-budget') {
+    return 'Add a monthly budget to track budget health.';
   }
 
-  if (estimate.overBudget) {
-    return `Over budget by ${formatUsd(Math.abs(estimate.remaining))}.`;
+  const percent = formatPercent(estimate.budgetUsedPercent);
+
+  if (estimate.budgetStatus === 'over') {
+    return `Over budget by ${formatUsd(estimate.overage)} (${percent} of budget).`;
   }
 
-  return `Under budget by ${formatUsd(estimate.remaining)}.`;
+  return `Using ${percent} of budget — ${formatUsd(estimate.remaining)} remaining.`;
 }
