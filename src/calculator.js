@@ -1,58 +1,159 @@
+/**
+ * Estimation engine.
+ *
+ * Pure, DOM-independent functions that turn a normalized workload (see
+ * `state.js`) into a structured estimate: per-service line items, per-service
+ * subtotals, a monthly total, and basic budget metrics. The engine is built
+ * around a service-definition registry so new AWS services can be added by
+ * appending one entry rather than editing a monolithic function.
+ */
+
+import { clampRange, clampZero } from './validation.js';
+import { normalizeWorkload } from './state.js';
+
 const MONEY_FORMATTER = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD',
+  minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
 
-export function toNumber(value, fallback = 0) {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : fallback;
+const RATE_FORMATTER = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 4,
+});
+
+const QUANTITY_FORMATTER = new Intl.NumberFormat('en-US', {
+  maximumFractionDigits: 2,
+});
+
+/** Format a monetary value as USD with two decimals. */
+export function formatUsd(value) {
+  return MONEY_FORMATTER.format(clampZero(value));
 }
 
-export function clampZero(value) {
-  return Math.max(0, toNumber(value));
+/** Format a fine-grained rate (up to four decimals) for detail strings. */
+export function formatRate(value) {
+  return RATE_FORMATTER.format(clampZero(value));
 }
 
-export function calculateEstimate(input) {
-  const ec2Hours = clampZero(input.ec2Hours);
-  const ec2Rate = clampZero(input.ec2Rate);
-  const storageGb = clampZero(input.storageGb);
-  const storageRate = clampZero(input.storageRate);
-  const budget = clampZero(input.budget);
+/** Format a plain quantity (hours, GB, counts). */
+export function formatQuantity(value) {
+  return QUANTITY_FORMATTER.format(clampZero(value));
+}
 
-  const computeCost = ec2Hours * ec2Rate;
-  const storageCost = storageGb * storageRate;
-  const total = computeCost + storageCost;
+/**
+ * The service registry. Each definition knows how to turn its slice of the
+ * workload into one or more line items. Adding a service here automatically
+ * feeds totals, subtotals, charts, and exports.
+ */
+export const SERVICE_DEFINITIONS = [
+  {
+    id: 'ec2',
+    label: 'EC2 compute',
+    estimate(service) {
+      const hours = clampRange(service.hours, 0, 744);
+      const rate = clampZero(service.rate);
+      return [
+        {
+          label: 'EC2 compute',
+          detail: `${formatQuantity(hours)} h × ${formatRate(rate)}/h`,
+          amount: hours * rate,
+        },
+      ];
+    },
+  },
+  {
+    id: 'ebs',
+    label: 'EBS storage',
+    estimate(service) {
+      const sizeGb = clampZero(service.sizeGb);
+      const rate = clampZero(service.rate);
+      return [
+        {
+          label: 'EBS storage',
+          detail: `${formatQuantity(sizeGb)} GB × ${formatRate(rate)}/GB-mo`,
+          amount: sizeGb * rate,
+        },
+      ];
+    },
+  },
+];
+
+const SERVICE_LABELS = Object.freeze(
+  Object.fromEntries(SERVICE_DEFINITIONS.map((definition) => [definition.id, definition.label])),
+);
+
+/** Human-readable label for a service id, safe for unknown ids. */
+export function serviceLabel(id) {
+  return SERVICE_LABELS[id] ?? id;
+}
+
+/**
+ * Produce a normalized estimate from a workload.
+ * The returned object is plain data suitable for rendering, exporting, and
+ * comparison. It never throws for malformed input.
+ */
+export function estimateWorkload(input) {
+  const workload = normalizeWorkload(input);
+  const lineItems = [];
+  const serviceSubtotals = {};
+  const services = [];
+
+  for (const definition of SERVICE_DEFINITIONS) {
+    const service = workload.services[definition.id];
+    const enabled = Boolean(service && service.enabled);
+    let subtotal = 0;
+
+    if (enabled) {
+      const items = definition.estimate(service);
+      for (const item of items) {
+        const amount = clampZero(item.amount);
+        subtotal += amount;
+        lineItems.push({
+          service: definition.id,
+          serviceLabel: definition.label,
+          label: item.label,
+          detail: item.detail,
+          amount,
+        });
+      }
+      serviceSubtotals[definition.id] = subtotal;
+    }
+
+    services.push({ id: definition.id, label: definition.label, amount: subtotal, enabled });
+  }
+
+  const total = services.reduce((sum, service) => sum + service.amount, 0);
+  const budget = clampZero(workload.budget);
   const remaining = budget - total;
   const overBudget = budget > 0 && total > budget;
 
   return {
-    ec2Hours,
-    ec2Rate,
-    storageGb,
-    storageRate,
-    budget,
-    computeCost,
-    storageCost,
+    region: workload.region,
+    currency: 'USD',
+    lineItems,
+    serviceSubtotals,
+    services,
     total,
+    budget,
     remaining,
     overBudget,
-    budgetStatus: budget === 0 ? 'no-budget' : overBudget ? 'over' : 'under',
+    budgetStatus: budget <= 0 ? 'no-budget' : overBudget ? 'over' : 'under',
   };
 }
 
-export function formatUsd(value) {
-  return MONEY_FORMATTER.format(toNumber(value));
-}
-
-export function getBudgetMessage(result) {
-  if (result.budget === 0) {
+/** Plain-language budget summary derived from an estimate. */
+export function getBudgetMessage(estimate) {
+  if (estimate.budget <= 0) {
     return 'Add a monthly budget to enable budget warnings.';
   }
 
-  if (result.overBudget) {
-    return `Warning: estimate is ${formatUsd(Math.abs(result.remaining))} over budget.`;
+  if (estimate.overBudget) {
+    return `Over budget by ${formatUsd(Math.abs(estimate.remaining))}.`;
   }
 
-  return `Good: estimate is ${formatUsd(result.remaining)} under budget.`;
+  return `Under budget by ${formatUsd(estimate.remaining)}.`;
 }

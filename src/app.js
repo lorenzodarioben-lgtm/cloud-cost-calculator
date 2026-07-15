@@ -1,4 +1,5 @@
-import { calculateEstimate, formatUsd, getBudgetMessage } from './calculator.js';
+import { estimateWorkload, formatUsd, getBudgetMessage } from './calculator.js';
+import { createDefaultWorkload, normalizeWorkload } from './state.js';
 import { DEFAULTS, EC2_RATES, PRICING_NOTES, STORAGE_RATES } from './pricing.js';
 
 const form = document.querySelector('[data-calculator-form]');
@@ -17,81 +18,114 @@ const noteOutput = document.querySelector('[data-pricing-note]');
 const presetButtons = document.querySelectorAll('[data-hours-preset]');
 const resetButton = document.querySelector('[data-reset]');
 
-const storageKey = 'cloud-cost-calculator-state';
+const STORAGE_KEY = 'cloud-cost-calculator-workload';
 
-function populateSelect(select, rates) {
+function populateSelect(select, rates, unit) {
+  select.replaceChildren();
   Object.entries(rates).forEach(([name, rate]) => {
     const option = document.createElement('option');
     option.value = name;
-    option.textContent = `${name} — ${formatUsd(rate)}/hr`.replace('/hr', select === storageSelect ? '/GB-mo' : '/hr');
+    option.textContent = `${name} — ${formatUsd(rate)}/${unit}`;
     select.append(option);
   });
 }
 
-function getSavedState() {
+function loadWorkload() {
   try {
-    return JSON.parse(localStorage.getItem(storageKey)) ?? {};
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? normalizeWorkload(JSON.parse(raw)) : createDefaultWorkload();
   } catch {
-    return {};
+    return createDefaultWorkload();
   }
 }
 
-function saveState(state) {
-  localStorage.setItem(storageKey, JSON.stringify(state));
+function saveWorkload(workload) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(workload));
+  } catch {
+    /* storage may be unavailable (private mode); estimates still work in-memory */
+  }
 }
 
-function getFormState() {
-  return {
-    ec2Instance: instanceSelect.value,
-    storageType: storageSelect.value,
-    ec2Hours: ec2HoursInput.value,
-    ec2Rate: ec2RateInput.value,
-    storageGb: storageGbInput.value,
-    storageRate: storageRateInput.value,
+/** Read the current form controls into a normalized workload. */
+function readWorkload() {
+  return normalizeWorkload({
+    region: DEFAULTS.region ?? 'us-east-1',
     budget: budgetInput.value,
-  };
+    services: {
+      ec2: {
+        enabled: true,
+        instanceType: instanceSelect.value,
+        hours: ec2HoursInput.value,
+        rate: ec2RateInput.value,
+      },
+      ebs: {
+        enabled: true,
+        volumeType: storageSelect.value,
+        sizeGb: storageGbInput.value,
+        rate: storageRateInput.value,
+      },
+    },
+  });
 }
 
-function setFormState(state) {
-  instanceSelect.value = state.ec2Instance ?? DEFAULTS.ec2Instance;
-  storageSelect.value = state.storageType ?? DEFAULTS.storageType;
-  ec2HoursInput.value = state.ec2Hours ?? DEFAULTS.ec2Hours;
-  ec2RateInput.value = state.ec2Rate ?? EC2_RATES[instanceSelect.value] ?? DEFAULTS.ec2Rate;
-  storageGbInput.value = state.storageGb ?? DEFAULTS.storageGb;
-  storageRateInput.value = state.storageRate ?? STORAGE_RATES[storageSelect.value] ?? DEFAULTS.storageRate;
-  budgetInput.value = state.budget ?? DEFAULTS.budget;
+/** Push a workload back into the form controls. */
+function writeWorkload(workload) {
+  const normalized = normalizeWorkload(workload);
+  instanceSelect.value = normalized.services.ec2.instanceType;
+  storageSelect.value = normalized.services.ebs.volumeType;
+  ec2HoursInput.value = normalized.services.ec2.hours;
+  ec2RateInput.value = normalized.services.ec2.rate;
+  storageGbInput.value = normalized.services.ebs.sizeGb;
+  storageRateInput.value = normalized.services.ebs.rate;
+  budgetInput.value = normalized.budget;
 }
 
-function renderEstimate() {
-  const state = getFormState();
-  const result = calculateEstimate(state);
+function renderLineItems(estimate) {
+  lineItems.replaceChildren();
+  estimate.lineItems.forEach((item) => {
+    lineItems.append(buildLineItem(item.label, formatUsd(item.amount)));
+  });
+  lineItems.append(buildLineItem('Budget', formatUsd(estimate.budget)));
+}
 
-  lineItems.innerHTML = `
-    <li><span>EC2 compute</span><strong>${formatUsd(result.computeCost)}</strong></li>
-    <li><span>EBS storage</span><strong>${formatUsd(result.storageCost)}</strong></li>
-    <li><span>Budget</span><strong>${formatUsd(result.budget)}</strong></li>
-  `;
+function buildLineItem(label, value) {
+  const li = document.createElement('li');
+  const name = document.createElement('span');
+  name.textContent = label;
+  const amount = document.createElement('strong');
+  amount.textContent = value;
+  li.append(name, amount);
+  return li;
+}
 
-  totalOutput.textContent = formatUsd(result.total);
-  budgetMessage.textContent = getBudgetMessage(result);
-  resultCard.dataset.status = result.budgetStatus;
+function render() {
+  const workload = readWorkload();
+  const estimate = estimateWorkload(workload);
 
+  renderLineItems(estimate);
+  totalOutput.textContent = formatUsd(estimate.total);
+  budgetMessage.textContent = getBudgetMessage(estimate);
+  resultCard.dataset.status = estimate.budgetStatus;
   noteOutput.textContent = `${PRICING_NOTES.region}, ${PRICING_NOTES.operatingSystem}, ${PRICING_NOTES.currency}. ${PRICING_NOTES.disclaimer}`;
 
-  saveState(state);
+  saveWorkload(workload);
 }
 
 function syncRateFromSelect(select, rateInput, rates) {
-  rateInput.value = rates[select.value] ?? rateInput.value;
-  renderEstimate();
+  const rate = rates[select.value];
+  if (rate !== undefined) {
+    rateInput.value = rate;
+  }
+  render();
 }
 
-populateSelect(instanceSelect, EC2_RATES);
-populateSelect(storageSelect, STORAGE_RATES);
-setFormState(getSavedState());
-renderEstimate();
+populateSelect(instanceSelect, EC2_RATES, 'hr');
+populateSelect(storageSelect, STORAGE_RATES, 'GB-mo');
+writeWorkload(loadWorkload());
+render();
 
-form.addEventListener('input', renderEstimate);
+form.addEventListener('input', render);
 
 instanceSelect.addEventListener('change', () => {
   syncRateFromSelect(instanceSelect, ec2RateInput, EC2_RATES);
@@ -104,12 +138,16 @@ storageSelect.addEventListener('change', () => {
 presetButtons.forEach((button) => {
   button.addEventListener('click', () => {
     ec2HoursInput.value = button.dataset.hoursPreset;
-    renderEstimate();
+    render();
   });
 });
 
 resetButton.addEventListener('click', () => {
-  localStorage.removeItem(storageKey);
-  setFormState(DEFAULTS);
-  renderEstimate();
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    /* ignore storage errors */
+  }
+  writeWorkload(createDefaultWorkload());
+  render();
 });

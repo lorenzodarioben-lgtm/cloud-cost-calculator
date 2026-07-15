@@ -1,95 +1,129 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { calculateEstimate, formatUsd, getBudgetMessage } from '../src/calculator.js';
+import {
+  estimateWorkload,
+  formatUsd,
+  formatRate,
+  getBudgetMessage,
+} from '../src/calculator.js';
 
-describe('calculateEstimate', () => {
-  it('calculates EC2 hours times rate plus storage GB times rate', () => {
-    const result = calculateEstimate({
-      ec2Hours: 730,
-      ec2Rate: 0.0104,
-      storageGb: 30,
-      storageRate: 0.08,
-      budget: 15,
-    });
+function baseWorkload(overrides = {}) {
+  return {
+    region: 'us-east-1',
+    budget: 15,
+    services: {
+      ec2: { enabled: true, instanceType: 't3.micro', hours: 730, rate: 0.0104 },
+      ebs: { enabled: true, volumeType: 'EBS gp3', sizeGb: 30, rate: 0.08 },
+    },
+    ...overrides,
+  };
+}
 
-    assert.equal(result.computeCost, 7.592);
-    assert.equal(result.storageCost, 2.4);
-    assert.equal(Number(result.total.toFixed(2)), 9.99);
-    assert.equal(result.overBudget, false);
+describe('estimateWorkload', () => {
+  it('sums EC2 compute and EBS storage into a monthly total', () => {
+    const estimate = estimateWorkload(baseWorkload());
+
+    assert.equal(estimate.serviceSubtotals.ec2, 7.592);
+    assert.equal(estimate.serviceSubtotals.ebs, 2.4);
+    assert.equal(Number(estimate.total.toFixed(2)), 9.99);
+    assert.equal(estimate.overBudget, false);
+    assert.equal(estimate.budgetStatus, 'under');
   });
 
-  it('flags estimates that are over budget', () => {
-    const result = calculateEstimate({
-      ec2Hours: 730,
-      ec2Rate: 0.0418,
-      storageGb: 100,
-      storageRate: 0.08,
-      budget: 25,
-    });
+  it('returns structured line items for each enabled service', () => {
+    const estimate = estimateWorkload(baseWorkload());
+    const labels = estimate.lineItems.map((item) => item.label);
 
-    assert.equal(result.overBudget, true);
-    assert.equal(result.budgetStatus, 'over');
-    assert.match(getBudgetMessage(result), /over budget/);
+    assert.deepEqual(labels, ['EC2 compute', 'EBS storage']);
+    assert.ok(estimate.lineItems.every((item) => typeof item.detail === 'string'));
+    assert.ok(estimate.lineItems.every((item) => item.amount >= 0));
   });
 
-  it('treats invalid or negative input as zero', () => {
-    const result = calculateEstimate({
-      ec2Hours: -5,
-      ec2Rate: 'not-a-rate',
-      storageGb: -20,
-      storageRate: 0.08,
-      budget: -1,
+  it('excludes disabled services from totals and line items', () => {
+    const estimate = estimateWorkload(
+      baseWorkload({
+        services: {
+          ec2: { enabled: true, instanceType: 't3.micro', hours: 730, rate: 0.0104 },
+          ebs: { enabled: false, volumeType: 'EBS gp3', sizeGb: 30, rate: 0.08 },
+        },
+      }),
+    );
+
+    assert.equal(estimate.serviceSubtotals.ebs, undefined);
+    assert.equal(estimate.lineItems.length, 1);
+    assert.equal(Number(estimate.total.toFixed(3)), 7.592);
+    const ebs = estimate.services.find((service) => service.id === 'ebs');
+    assert.equal(ebs.enabled, false);
+    assert.equal(ebs.amount, 0);
+  });
+
+  it('flags estimates that exceed the budget', () => {
+    const estimate = estimateWorkload(
+      baseWorkload({
+        budget: 5,
+        services: {
+          ec2: { enabled: true, instanceType: 't3.medium', hours: 730, rate: 0.0418 },
+          ebs: { enabled: true, volumeType: 'EBS gp3', sizeGb: 100, rate: 0.08 },
+        },
+      }),
+    );
+
+    assert.equal(estimate.overBudget, true);
+    assert.equal(estimate.budgetStatus, 'over');
+    assert.ok(estimate.remaining < 0);
+    assert.match(getBudgetMessage(estimate), /Over budget/);
+  });
+
+  it('treats a zero budget as no-budget', () => {
+    const estimate = estimateWorkload(baseWorkload({ budget: 0 }));
+
+    assert.equal(estimate.budgetStatus, 'no-budget');
+    assert.equal(getBudgetMessage(estimate), 'Add a monthly budget to enable budget warnings.');
+  });
+
+  it('coerces negative, string, NaN, and infinite inputs to zero', () => {
+    const estimate = estimateWorkload({
+      budget: -10,
+      services: {
+        ec2: { enabled: true, instanceType: 't3.micro', hours: -5, rate: 'not-a-number' },
+        ebs: { enabled: true, volumeType: 'EBS gp3', sizeGb: Infinity, rate: NaN },
+      },
     });
 
-    assert.equal(result.total, 0);
-    assert.equal(result.budgetStatus, 'no-budget');
+    assert.equal(estimate.total, 0);
+    assert.equal(estimate.budget, 0);
+    assert.equal(estimate.budgetStatus, 'no-budget');
+  });
+
+  it('handles decimal quantities precisely enough for currency rounding', () => {
+    const estimate = estimateWorkload(
+      baseWorkload({
+        services: {
+          ec2: { enabled: true, instanceType: 't3.nano', hours: 12.5, rate: 0.0052 },
+          ebs: { enabled: false },
+        },
+      }),
+    );
+
+    assert.equal(Number(estimate.total.toFixed(4)), 0.065);
+  });
+
+  it('never throws for malformed input', () => {
+    assert.doesNotThrow(() => estimateWorkload(null));
+    assert.doesNotThrow(() => estimateWorkload(undefined));
+    assert.doesNotThrow(() => estimateWorkload('nonsense'));
+    assert.equal(estimateWorkload(null).total, estimateWorkload(undefined).total);
   });
 });
 
-describe('formatUsd', () => {
-  it('formats values as USD', () => {
+describe('formatting', () => {
+  it('formats currency to two decimals', () => {
     assert.equal(formatUsd(9.992), '$9.99');
-  });
-});
-
-describe('budget messages', () => {
-  it('handles a zero budget as no-budget', () => {
-    const result = calculateEstimate({
-      ec2Hours: 730,
-      ec2Rate: 0.0104,
-      storageGb: 30,
-      storageRate: 0.08,
-      budget: 0,
-    });
-
-    assert.equal(result.budgetStatus, 'no-budget');
-    assert.equal(getBudgetMessage(result), 'Add a monthly budget to enable budget warnings.');
+    assert.equal(formatUsd(0), '$0.00');
+    assert.equal(formatUsd(-5), '$0.00');
   });
 
-  it('shows an under-budget message when estimate is below budget', () => {
-    const result = calculateEstimate({
-      ec2Hours: 40,
-      ec2Rate: 0.0104,
-      storageGb: 10,
-      storageRate: 0.08,
-      budget: 5,
-    });
-
-    assert.equal(result.budgetStatus, 'under');
-    assert.match(getBudgetMessage(result), /under budget/);
-  });
-});
-
-describe('default estimate example', () => {
-  it('rounds the default estimate to $9.99', () => {
-    const result = calculateEstimate({
-      ec2Hours: 730,
-      ec2Rate: 0.0104,
-      storageGb: 30,
-      storageRate: 0.08,
-      budget: 15,
-    });
-
-    assert.equal(formatUsd(result.total), '$9.99');
+  it('formats fine-grained rates to four decimals', () => {
+    assert.equal(formatRate(0.0104), '$0.0104');
   });
 });
