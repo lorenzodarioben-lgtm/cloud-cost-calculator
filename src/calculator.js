@@ -84,6 +84,31 @@ export const SERVICE_DEFINITIONS = [
       ];
     },
   },
+  {
+    id: 's3',
+    label: 'S3 object storage',
+    estimate(service) {
+      const storageGb = clampZero(service.storageGb);
+      const rate = clampZero(service.rate);
+      const requests = clampZero(service.requests);
+      const requestRate = clampZero(service.requestRate); // per 1,000 requests
+      const items = [
+        {
+          label: 'S3 storage',
+          detail: `${formatQuantity(storageGb)} GB × ${formatRate(rate)}/GB-mo`,
+          amount: storageGb * rate,
+        },
+      ];
+      if (requests > 0) {
+        items.push({
+          label: 'S3 requests',
+          detail: `${formatQuantity(requests)} req × ${formatRate(requestRate)}/1k`,
+          amount: (requests / 1000) * requestRate,
+        });
+      }
+      return items;
+    },
+  },
 ];
 
 const SERVICE_LABELS = Object.freeze(

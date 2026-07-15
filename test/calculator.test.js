@@ -174,6 +174,45 @@ describe('estimateWorkload', () => {
   });
 });
 
+describe('S3 estimation', () => {
+  function withS3(s3) {
+    return baseWorkload({
+      services: {
+        ec2: { enabled: false },
+        ebs: { enabled: false },
+        s3: { enabled: true, storageClass: 'standard', ...s3 },
+      },
+    });
+  }
+
+  it('prices storage and requests separately', () => {
+    const estimate = estimateWorkload(
+      withS3({ storageGb: 100, rate: 0.023, requests: 1_000_000, requestRate: 0.0004 }),
+    );
+
+    assert.equal(estimate.serviceSubtotals.s3, 100 * 0.023 + (1_000_000 / 1000) * 0.0004);
+    assert.deepEqual(
+      estimate.lineItems.map((item) => item.label),
+      ['S3 storage', 'S3 requests'],
+    );
+  });
+
+  it('omits the request line when there are no requests', () => {
+    const estimate = estimateWorkload(withS3({ storageGb: 50, rate: 0.023, requests: 0, requestRate: 0.0004 }));
+
+    assert.equal(estimate.lineItems.length, 1);
+    assert.equal(estimate.lineItems[0].label, 'S3 storage');
+    assert.equal(estimate.serviceSubtotals.s3, 50 * 0.023);
+  });
+
+  it('is disabled by default so it does not affect the demo estimate', () => {
+    const estimate = estimateWorkload(baseWorkload());
+    assert.equal(estimate.serviceSubtotals.s3, undefined);
+    const s3 = estimate.services.find((service) => service.id === 's3');
+    assert.equal(s3.enabled, false);
+  });
+});
+
 describe('formatting', () => {
   it('formats currency to two decimals', () => {
     assert.equal(formatUsd(9.992), '$9.99');

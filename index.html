@@ -260,9 +260,63 @@
               </div>
             </div>
 
-            <div class="form-section">
+            <div class="form-section" data-service-section="s3">
               <div class="section-heading">
                 <span class="section-number">03</span>
+                <div>
+                  <h4>S3 object storage</h4>
+                  <p>Optional. Simplified storage and request model.</p>
+                </div>
+                <label class="service-toggle">
+                  <input type="checkbox" id="s3-enabled" name="s3-enabled" />
+                  <span>Include</span>
+                </label>
+              </div>
+
+              <div class="field-grid" data-service-fields="s3">
+                <div class="field field-full">
+                  <label for="s3-class">Storage class</label>
+                  <select id="s3-class" name="s3-class"></select>
+                </div>
+
+                <div class="field">
+                  <label for="s3-storage">Storage (GB)</label>
+                  <input id="s3-storage" name="s3-storage" type="number" min="0" step="1" inputmode="numeric" />
+                </div>
+
+                <div class="field">
+                  <label for="s3-rate">S3 rate / GB-month (USD)</label>
+                  <input id="s3-rate" name="s3-rate" type="number" min="0" step="0.0001" inputmode="decimal" />
+                </div>
+
+                <div class="field">
+                  <label for="s3-requests">Monthly requests</label>
+                  <input
+                    id="s3-requests"
+                    name="s3-requests"
+                    type="number"
+                    min="0"
+                    step="1000"
+                    inputmode="numeric"
+                    aria-describedby="s3-requests-hint"
+                  />
+                </div>
+
+                <div class="field">
+                  <label for="s3-request-rate">Request rate / 1,000 (USD)</label>
+                  <input id="s3-request-rate" name="s3-request-rate" type="number" min="0" step="0.0001" inputmode="decimal" />
+                </div>
+
+                <p id="s3-requests-hint" class="field-hint field-full">
+                  Requests use one blended GET/PUT sample rate per 1,000 requests. Real S3 prices GET,
+                  PUT, and other request types separately.
+                </p>
+              </div>
+            </div>
+
+            <div class="form-section budget-section">
+              <div class="section-heading">
+                <span class="section-number section-number--budget">$</span>
                 <div>
                   <h4>Budget guardrail</h4>
                   <p>Set the maximum monthly spend you want to stay under.</p>
@@ -271,8 +325,8 @@
 
               <div class="field-grid">
                 <div class="field field-full">
-                  <label for="budget">Monthly budget</label>
-                  <input id="budget" name="budget" type="number" min="0" step="1" />
+                  <label for="budget">Monthly budget (USD)</label>
+                  <input id="budget" name="budget" type="number" min="0" step="1" inputmode="decimal" />
                 </div>
               </div>
 

@@ -7,8 +7,13 @@
  * all operate on this single shape so there is exactly one source of truth.
  */
 
-import { clampCount, clampRange, clampZero, isEnabled } from './validation.js';
-import { DEFAULTS } from './pricing.js';
+import { clampCount, clampRange, clampZero } from './validation.js';
+import { DEFAULT_REGION, DEFAULTS, getRate, getScalarRate } from './pricing.js';
+
+/** Resolve a service's enabled flag: honour an explicit boolean, else default. */
+function resolveEnabled(value, fallbackEnabled) {
+  return typeof value === 'boolean' ? value : fallbackEnabled;
+}
 
 /** Safe upper bounds so a typo can never produce an astronomical estimate. */
 export const LIMITS = Object.freeze({
@@ -41,6 +46,14 @@ export function createDefaultWorkload() {
         sizeGb: DEFAULTS.storageGb,
         rate: DEFAULTS.storageRate,
       },
+      s3: {
+        enabled: false,
+        storageClass: 'standard',
+        storageGb: 100,
+        rate: getRate(DEFAULT_REGION, 's3', 'standard'),
+        requests: 1_000_000,
+        requestRate: getScalarRate(DEFAULT_REGION, 's3RequestPer1k'),
+      },
     },
   };
 }
@@ -62,6 +75,7 @@ export function normalizeWorkload(raw) {
     services: {
       ec2: normalizeEc2(services.ec2, defaults.services.ec2),
       ebs: normalizeEbs(services.ebs, defaults.services.ebs),
+      s3: normalizeS3(services.s3, defaults.services.s3),
     },
   };
 }
@@ -73,7 +87,7 @@ export function normalizeWorkload(raw) {
 function normalizeEc2(raw, fallback) {
   const source = raw && typeof raw === 'object' ? raw : {};
   return {
-    enabled: isEnabled(source.enabled),
+    enabled: resolveEnabled(source.enabled, fallback.enabled),
     instanceType:
       typeof source.instanceType === 'string' && source.instanceType
         ? source.instanceType
@@ -87,7 +101,7 @@ function normalizeEc2(raw, fallback) {
 function normalizeEbs(raw, fallback) {
   const source = raw && typeof raw === 'object' ? raw : {};
   return {
-    enabled: isEnabled(source.enabled),
+    enabled: resolveEnabled(source.enabled, fallback.enabled),
     volumeType:
       typeof source.volumeType === 'string' && source.volumeType
         ? source.volumeType
@@ -95,6 +109,21 @@ function normalizeEbs(raw, fallback) {
     volumes: clampCount(source.volumes, { min: 1, max: LIMITS.ebsVolumes, fallback: 1 }),
     sizeGb: clampZero(source.sizeGb, 0),
     rate: clampZero(source.rate, 0),
+  };
+}
+
+function normalizeS3(raw, fallback) {
+  const source = raw && typeof raw === 'object' ? raw : {};
+  return {
+    enabled: resolveEnabled(source.enabled, fallback.enabled),
+    storageClass:
+      typeof source.storageClass === 'string' && source.storageClass
+        ? source.storageClass
+        : fallback.storageClass,
+    storageGb: clampZero(source.storageGb, 0),
+    rate: clampZero(source.rate, 0),
+    requests: clampZero(source.requests, 0),
+    requestRate: clampZero(source.requestRate, 0),
   };
 }
 

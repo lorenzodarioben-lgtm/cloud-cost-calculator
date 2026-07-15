@@ -73,6 +73,12 @@ describe('updateService', () => {
     assert.equal(workload.services.ebs.enabled, true);
   });
 
+  it('adds S3 to the model, disabled by default', () => {
+    const workload = normalizeWorkload({});
+    assert.equal(workload.services.s3.enabled, false);
+    assert.equal(typeof workload.services.s3.storageGb, 'number');
+  });
+
   it('ignores unknown service ids', () => {
     const before = createDefaultWorkload();
     const after = updateService(before, 'unknown', { foo: 1 });
