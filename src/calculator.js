@@ -71,13 +71,15 @@ export const SERVICE_DEFINITIONS = [
     id: 'ebs',
     label: 'EBS storage',
     estimate(service) {
+      const volumes = clampRange(service.volumes, 0, 100, 1);
       const sizeGb = clampZero(service.sizeGb);
       const rate = clampZero(service.rate);
+      const count = volumes === 1 ? '' : `${formatQuantity(volumes)} × `;
       return [
         {
           label: 'EBS storage',
-          detail: `${formatQuantity(sizeGb)} GB × ${formatRate(rate)}/GB-mo`,
-          amount: sizeGb * rate,
+          detail: `${count}${formatQuantity(sizeGb)} GB × ${formatRate(rate)}/GB-mo`,
+          amount: volumes * sizeGb * rate,
         },
       ];
     },

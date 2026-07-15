@@ -14,6 +14,7 @@ import { DEFAULTS } from './pricing.js';
 export const LIMITS = Object.freeze({
   ec2Quantity: 1000,
   ec2Hours: 744,
+  ebsVolumes: 100,
 });
 
 /** Bumped whenever the persisted workload shape changes in a breaking way. */
@@ -36,6 +37,7 @@ export function createDefaultWorkload() {
       ebs: {
         enabled: true,
         volumeType: DEFAULTS.storageType,
+        volumes: 1,
         sizeGb: DEFAULTS.storageGb,
         rate: DEFAULTS.storageRate,
       },
@@ -90,6 +92,7 @@ function normalizeEbs(raw, fallback) {
       typeof source.volumeType === 'string' && source.volumeType
         ? source.volumeType
         : fallback.volumeType,
+    volumes: clampCount(source.volumes, { min: 1, max: LIMITS.ebsVolumes, fallback: 1 }),
     sizeGb: clampZero(source.sizeGb, 0),
     rate: clampZero(source.rate, 0),
   };

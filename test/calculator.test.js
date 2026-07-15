@@ -68,6 +68,35 @@ describe('estimateWorkload', () => {
     assert.ok(estimate.lineItems.every((item) => item.amount >= 0));
   });
 
+  it('multiplies EBS cost by volume count and per-volume size', () => {
+    const estimate = estimateWorkload(
+      baseWorkload({
+        services: {
+          ec2: { enabled: false },
+          ebs: { enabled: true, volumeType: 'gp3', volumes: 4, sizeGb: 50, rate: 0.08 },
+        },
+      }),
+    );
+
+    assert.equal(estimate.serviceSubtotals.ebs, 4 * 50 * 0.08);
+    assert.match(estimate.lineItems[0].detail, /4 ×/);
+  });
+
+  it('drops EBS from the estimate when it is disabled', () => {
+    const estimate = estimateWorkload(
+      baseWorkload({
+        services: {
+          ec2: { enabled: true, instanceType: 't3.micro', quantity: 1, hours: 730, rate: 0.0104 },
+          ebs: { enabled: false, volumeType: 'gp3', volumes: 4, sizeGb: 50, rate: 0.08 },
+        },
+      }),
+    );
+
+    assert.equal(estimate.serviceSubtotals.ebs, undefined);
+    assert.equal(estimate.lineItems.length, 1);
+    assert.equal(Number(estimate.total.toFixed(3)), 7.592);
+  });
+
   it('excludes disabled services from totals and line items', () => {
     const estimate = estimateWorkload(
       baseWorkload({

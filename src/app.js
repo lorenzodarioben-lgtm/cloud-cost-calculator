@@ -16,6 +16,8 @@ const storageSelect = document.querySelector('#storage-type');
 const ec2QuantityInput = document.querySelector('#ec2-quantity');
 const ec2HoursInput = document.querySelector('#ec2-hours');
 const ec2RateInput = document.querySelector('#ec2-rate');
+const ebsEnabledInput = document.querySelector('#ebs-enabled');
+const ebsVolumesInput = document.querySelector('#ebs-volumes');
 const storageGbInput = document.querySelector('#storage-gb');
 const storageRateInput = document.querySelector('#storage-rate');
 const budgetInput = document.querySelector('#budget');
@@ -29,6 +31,23 @@ const presetButtons = document.querySelectorAll('[data-hours-preset]');
 const resetButton = document.querySelector('[data-reset]');
 
 const STORAGE_KEY = 'cloud-cost-calculator-workload';
+
+/** Optional services that can be toggled on/off from their section header. */
+const OPTIONAL_SERVICES = ['ebs'];
+
+/** Visually and functionally disable a service section when it is switched off. */
+function reflectServiceEnabled(serviceId, enabled) {
+  const section = document.querySelector(`[data-service-section="${serviceId}"]`);
+  if (!section) {
+    return;
+  }
+  section.classList.toggle('is-disabled', !enabled);
+  section
+    .querySelectorAll('[data-service-fields] input, [data-service-fields] select')
+    .forEach((element) => {
+      element.disabled = !enabled;
+    });
+}
 
 function populateRegions(select) {
   select.replaceChildren();
@@ -90,8 +109,9 @@ function readWorkload() {
         rate: ec2RateInput.value,
       },
       ebs: {
-        enabled: true,
+        enabled: ebsEnabledInput.checked,
         volumeType: storageSelect.value,
+        volumes: ebsVolumesInput.value,
         sizeGb: storageGbInput.value,
         rate: storageRateInput.value,
       },
@@ -108,9 +128,15 @@ function writeWorkload(workload) {
   ec2QuantityInput.value = normalized.services.ec2.quantity;
   ec2HoursInput.value = normalized.services.ec2.hours;
   ec2RateInput.value = normalized.services.ec2.rate;
+  ebsEnabledInput.checked = normalized.services.ebs.enabled;
+  ebsVolumesInput.value = normalized.services.ebs.volumes;
   storageGbInput.value = normalized.services.ebs.sizeGb;
   storageRateInput.value = normalized.services.ebs.rate;
   budgetInput.value = normalized.budget;
+
+  OPTIONAL_SERVICES.forEach((serviceId) => {
+    reflectServiceEnabled(serviceId, normalized.services[serviceId].enabled);
+  });
 }
 
 function buildLineItem(label, value) {
@@ -177,6 +203,14 @@ instanceSelect.addEventListener('change', () => {
 storageSelect.addEventListener('change', () => {
   syncRate(storageRateInput, 'ebs', storageSelect.value);
   render();
+});
+
+OPTIONAL_SERVICES.forEach((serviceId) => {
+  const toggle = document.querySelector(`#${serviceId}-enabled`);
+  toggle?.addEventListener('change', () => {
+    reflectServiceEnabled(serviceId, toggle.checked);
+    render();
+  });
 });
 
 presetButtons.forEach((button) => {
