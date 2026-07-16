@@ -31,141 +31,42 @@
     <script type="module" src="src/app.js"></script>
   </head>
   <body>
-    <div class="site-background" aria-hidden="true">
-      <div class="mesh mesh-one"></div>
-      <div class="mesh mesh-two"></div>
-      <div class="mesh mesh-three"></div>
-      <div class="grid-plane"></div>
-    </div>
+    <a class="skip-link" href="#calculator">Skip to calculator</a>
 
-    <main class="page-shell">
-      <header class="topbar" aria-label="Project header">
-        <a class="brand" href="#">
-          <span class="brand-mark">AWS</span>
-          <span>Cloud Cost Calculator</span>
-        </a>
+    <header class="app-bar" aria-label="Site header">
+      <a class="brand" href="#top">
+        <span class="brand-mark" aria-hidden="true">AWS</span>
+        <span class="brand-name">Cloud Cost Calculator</span>
+      </a>
 
-        <nav class="topnav" aria-label="Page navigation">
-          <a href="#calculator">Calculator</a>
-          <a href="docs/pricing-assumptions.md">Assumptions</a>
-          <a href="examples/scenarios.json">Scenarios</a>
-        </nav>
+      <nav class="app-nav" aria-label="Page navigation">
+        <a href="#calculator">Calculator</a>
+        <a href="#scenarios-title">Scenarios</a>
+        <a href="docs/pricing-assumptions.md">Assumptions</a>
+      </nav>
 
-        <div class="theme-toggle" role="group" aria-label="Colour theme" data-theme-toggle>
-          <button type="button" data-theme-choice="system" aria-pressed="true">System</button>
-          <button type="button" data-theme-choice="light" aria-pressed="false">Light</button>
-          <button type="button" data-theme-choice="dark" aria-pressed="false">Dark</button>
-        </div>
-      </header>
+      <div class="theme-toggle" role="group" aria-label="Colour theme" data-theme-toggle>
+        <button type="button" data-theme-choice="system" aria-pressed="true">System</button>
+        <button type="button" data-theme-choice="light" aria-pressed="false">Light</button>
+        <button type="button" data-theme-choice="dark" aria-pressed="false">Dark</button>
+      </div>
+    </header>
 
-      <section class="hero" aria-labelledby="page-title">
-        <div class="hero-copy-block">
-          <p class="eyebrow">FinOps lab / AWS estimate mockup</p>
-          <h1 id="page-title">Cloud cost control before the bill arrives.</h1>
-          <p class="hero-copy">
-            Estimate EC2 compute, EBS storage, and monthly budget risk in a clean portfolio-grade
-            interface. Built to demonstrate cloud fundamentals, practical cost awareness, and
-            production-minded JavaScript.
-          </p>
-
-          <div class="hero-actions" aria-label="Primary actions">
-            <a class="primary-link" href="#calculator">Start estimating</a>
-            <a class="secondary-link" href="docs/pricing-assumptions.md">View assumptions</a>
-          </div>
-
-          <div class="signal-row" aria-label="Project highlights">
-            <article>
-              <span>01</span>
-              <strong>EC2 compute</strong>
-              <p>Model hourly instance runtime across common usage patterns.</p>
-            </article>
-            <article>
-              <span>02</span>
-              <strong>EBS storage</strong>
-              <p>Estimate simple GB-month storage costs with editable rates.</p>
-            </article>
-            <article>
-              <span>03</span>
-              <strong>Budget guardrail</strong>
-              <p>Instantly see whether your monthly estimate is safe or over budget.</p>
-            </article>
-          </div>
-        </div>
-
-        <aside class="hero-panel" aria-label="Example AWS cost flow">
-          <div class="panel-glow"></div>
-
-          <div class="terminal-topline">
-            <span></span>
-            <span></span>
-            <span></span>
-            <p>estimate.json</p>
-          </div>
-
-          <div class="architecture-map">
-            <div class="service-node node-primary">
-              <span class="node-icon">EC2</span>
-              <div>
-                <strong>Compute</strong>
-                <small>730 hours / t3.micro</small>
-              </div>
-            </div>
-
-            <div class="flow-line"></div>
-
-            <div class="service-node">
-              <span class="node-icon">EBS</span>
-              <div>
-                <strong>Storage</strong>
-                <small>30 GB / gp3</small>
-              </div>
-            </div>
-
-            <div class="flow-line"></div>
-
-            <div class="service-node node-accent">
-              <span class="node-icon">$</span>
-              <div>
-                <strong>Budget state</strong>
-                <small>Under monthly guardrail</small>
-              </div>
-            </div>
-          </div>
-
-          <div class="code-preview" aria-label="Example estimate">
-            <p><span>monthly_total</span><strong>"$9.99"</strong></p>
-            <p><span>status</span><strong>"under_budget"</strong></p>
-            <p><span>region</span><strong>"us-east-1"</strong></p>
-          </div>
-        </aside>
-      </section>
-
-      <section class="metric-strip" aria-label="Calculator capabilities">
-        <article>
-          <span>Live</span>
-          <strong>Editable inputs</strong>
-          <p>Change hours, rates, storage, and budget without refreshing the page.</p>
-        </article>
-        <article>
-          <span>Static</span>
-          <strong>GitHub Pages ready</strong>
-          <p>No backend required. The project runs as a lightweight static frontend.</p>
-        </article>
-        <article>
-          <span>Tested</span>
-          <strong>Node validation</strong>
-          <p>Pure calculator logic is covered by a small Node test suite.</p>
-        </article>
+    <main class="page-shell" id="top">
+      <section class="page-header">
+        <p class="kicker">AWS FinOps planning workbench</p>
+        <h1 class="page-title">Plan cloud spend before the bill lands.</h1>
+        <p class="page-subtitle">
+          Model EC2, EBS, S3, RDS, and data transfer across regions, track budget health, compare
+          scenarios, and export the result.
+        </p>
+        <p class="disclaimer-chip">Sample pricing for learning. Not a live or official AWS quote.</p>
       </section>
 
       <section class="calculator-section" id="calculator" aria-label="Cloud cost calculator">
         <div class="section-intro">
-          <p class="section-kicker">Calculator</p>
-          <h2>Build a monthly AWS estimate.</h2>
-          <p>
-            Pick a workload shape, tune the mock pricing assumptions, and watch the estimate update
-            immediately.
-          </p>
+          <h2>Build a monthly estimate</h2>
+          <p>Pick a workload, tune the sample rates, and the forecast updates as you type.</p>
         </div>
 
         <div class="calculator-grid">
@@ -173,9 +74,8 @@
             <div class="card-heading">
               <div>
                 <p class="section-kicker">Configuration</p>
-                <h3>Usage inputs</h3>
+                <h3>Workload inputs</h3>
               </div>
-              <span>Live model</span>
             </div>
 
             <div class="preset-bar">
@@ -187,7 +87,7 @@
               <label for="region">Sample region</label>
               <select id="region" name="region" aria-describedby="region-hint"></select>
               <p id="region-hint" class="field-hint">
-                Curated sample rates for this region — not a live AWS quote.
+                Curated sample rates for this region, not a live AWS quote.
               </p>
             </div>
 
@@ -460,15 +360,13 @@
             </div>
           </form>
 
-          <aside class="card result-card" data-result-card data-status="healthy">
-            <div class="result-glow"></div>
-
+          <aside class="card result-card" data-result-card data-status="healthy" aria-label="Estimate forecast">
             <div class="card-heading result-heading">
               <div>
                 <p class="section-kicker">Forecast</p>
                 <h3>Monthly estimate</h3>
               </div>
-              <span>USD</span>
+              <span class="currency-tag">USD</span>
             </div>
 
             <div class="total-block">
@@ -619,6 +517,18 @@
           </section>
         </div>
       </section>
+
+      <footer class="app-footer">
+        <p>
+          Static, dependency-free frontend. Pricing is simplified sample data for learning and
+          portfolio use, not an official AWS quote.
+        </p>
+        <nav class="footer-links" aria-label="Documentation">
+          <a href="docs/pricing-assumptions.md">Pricing assumptions</a>
+          <a href="docs/manual-test-checklist.md">Test checklist</a>
+          <a href="examples/scenarios.json">Example scenarios</a>
+        </nav>
+      </footer>
     </main>
   </body>
 </html>

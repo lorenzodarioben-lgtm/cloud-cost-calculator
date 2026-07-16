@@ -34,7 +34,7 @@ export function saveThemePreference(storage, preference) {
   try {
     storage.setItem(THEME_KEY, value);
   } catch {
-    /* storage unavailable — theme still applies for this session */
+    /* storage unavailable - theme still applies for this session */
   }
   return value;
 }

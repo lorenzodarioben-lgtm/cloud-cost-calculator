@@ -3,7 +3,7 @@
  *
  * A workload is encoded as URL-safe base64 of its JSON. Decoding never throws:
  * malformed or tampered state yields null so the app can fall back cleanly.
- * Only configuration numbers and service ids are encoded — no personal data.
+ * Only configuration numbers and service ids are encoded - no personal data.
  */
 
 import { isWorkloadLike, normalizeWorkload } from './state.js';

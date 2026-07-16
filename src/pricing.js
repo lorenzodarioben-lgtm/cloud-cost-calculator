@@ -151,5 +151,5 @@ export const PRICING_NOTES = Object.freeze({
   monthLength: '730 hours for a rough always-on month',
   basis: 'Sample rates are the us-east-1 reference scaled by a per-region factor.',
   disclaimer:
-    'Curated sample pricing for learning and portfolio use — not fetched live and not an official AWS quote. Real bills vary by region, OS, usage model, taxes, free-tier credits, data transfer, snapshots, monitoring, and commitment discounts.',
+    'Curated sample pricing for learning and portfolio use. Not fetched live and not an official AWS quote. Real bills vary by region, OS, usage model, taxes, free-tier credits, data transfer, snapshots, monitoring, and commitment discounts.',
 });

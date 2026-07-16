@@ -309,7 +309,7 @@ function renderBudgetHealth(estimate) {
   budgetAmountOutput.textContent = formatUsd(estimate.budget);
 
   const hasBudget = estimate.budgetStatus !== 'no-budget';
-  budgetPercentOutput.textContent = hasBudget ? formatPercent(estimate.budgetUsedPercent) : '—';
+  budgetPercentOutput.textContent = hasBudget ? formatPercent(estimate.budgetUsedPercent) : 'n/a';
 
   const percent = hasBudget ? Math.min(100, estimate.budgetUsedPercent) : 0;
   progressFill.style.width = `${percent}%`;
@@ -326,7 +326,7 @@ function renderBudgetHealth(estimate) {
     remainingOutput.textContent = formatUsd(estimate.overage);
   } else {
     remainingLabel.textContent = 'Remaining';
-    remainingOutput.textContent = hasBudget ? formatUsd(estimate.remaining) : '—';
+    remainingOutput.textContent = hasBudget ? formatUsd(estimate.remaining) : 'n/a';
   }
 
   budgetMessage.textContent = getBudgetMessage(estimate);
@@ -561,9 +561,9 @@ function comparisonSummary(result, name) {
   const annual = formatUsd(Math.abs(result.annualDiff));
   if (result.cheaper === 'active') {
     const pct = result.monthlyPercent !== null ? ` (${formatPercent(Math.abs(result.monthlyPercent))} less)` : '';
-    return `Current estimate is ${magnitude}/mo cheaper than “${name}”${pct} — ${active} vs ${other}, about ${annual}/yr.`;
+    return `Current estimate is ${magnitude}/mo cheaper than “${name}”${pct}: ${active} vs ${other}, about ${annual}/yr saved.`;
   }
-  return `Current estimate is ${magnitude}/mo more than “${name}” — ${active} vs ${other}, about ${annual}/yr extra.`;
+  return `Current estimate is ${magnitude}/mo more than “${name}”: ${active} vs ${other}, about ${annual}/yr extra.`;
 }
 
 function renderComparison() {

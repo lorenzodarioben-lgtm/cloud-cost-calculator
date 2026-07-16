@@ -3,7 +3,7 @@
  *
  * Scenarios are persisted in Web Storage under a single versioned envelope.
  * Every read is defensive: corrupt JSON, wrong shapes, or a future/older
- * version can never crash the app — the worst case is an empty list. All
+ * version can never crash the app - the worst case is an empty list. All
  * functions take a Web Storage-like object so they can be unit tested with an
  * in-memory stub.
  */
@@ -75,7 +75,7 @@ function writeStore(storage, store) {
   try {
     storage.setItem(STORAGE_KEY, JSON.stringify(store));
   } catch {
-    /* storage full or unavailable — keep working in-memory */
+    /* storage full or unavailable - keep working in-memory */
   }
 }
 

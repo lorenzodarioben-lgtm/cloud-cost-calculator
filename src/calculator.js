@@ -44,7 +44,7 @@ export function formatQuantity(value) {
   return QUANTITY_FORMATTER.format(clampZero(value));
 }
 
-/** Format a percentage (0–n) with one decimal, tolerant of null. */
+/** Format a percentage (0-n) with one decimal, tolerant of null. */
 export function formatPercent(value) {
   const number = Number.isFinite(value) ? value : 0;
   return `${Math.round(number * 10) / 10}%`;
@@ -284,5 +284,5 @@ export function getBudgetMessage(estimate) {
     return `Over budget by ${formatUsd(estimate.overage)} (${percent} of budget).`;
   }
 
-  return `Using ${percent} of budget — ${formatUsd(estimate.remaining)} remaining.`;
+  return `Using ${percent} of budget, ${formatUsd(estimate.remaining)} remaining.`;
 }
