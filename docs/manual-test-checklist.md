@@ -1,80 +1,74 @@
-\# Manual Test Checklist
+# Manual Test Checklist
 
+Run through this before publishing changes. Pair it with `npm run validate`.
 
+## Load and defaults
 
-Use this checklist before publishing changes.
+- [ ] The page loads with no console errors and no failed local assets.
+- [ ] The default estimate shows `$9.99/month` and a "Healthy" budget status.
+- [ ] Region, instance, volume, and S3/RDS class selects are populated.
 
+## Services
 
+- [ ] Changing EC2 instances, hours, or rate updates the estimate.
+- [ ] Changing EBS volumes, size, or rate updates the estimate.
+- [ ] Enabling S3 adds storage and request line items.
+- [ ] Enabling RDS adds instance and storage line items.
+- [ ] Enabling data transfer adds an outbound line item.
+- [ ] Disabling a service dims it, disables its inputs, and removes it from the total.
 
-\## Calculator basics
+## Region and presets
 
+- [ ] Switching region re-syncs rates (Sydney is pricier than N. Virginia).
+- [ ] Each workload preset updates the whole configuration and marks the chip pressed.
+- [ ] Editing any field clears the pressed preset chip.
+- [ ] Runtime presets set EC2 monthly hours.
 
+## Budget health
 
-\- \[ ] The page loads without console errors.
+- [ ] A budget above the estimate shows healthy/watch and the progress bar fills.
+- [ ] A budget below the estimate shows "Over budget" and an overage amount.
+- [ ] A zero budget shows "No budget set" and `n/a` for percent/remaining.
+- [ ] Recommendations name the largest cost driver and read sensibly.
 
-\- \[ ] EC2 instance options appear in the dropdown.
+## Cost breakdown
 
-\- \[ ] EBS storage options appear in the dropdown.
+- [ ] The donut and legend show each enabled service's share and amount.
+- [ ] Zeroing all services shows the breakdown empty state.
 
-\- \[ ] Changing monthly hours updates the estimate.
+## Scenarios
 
-\- \[ ] Changing EC2 rate updates the estimate.
+- [ ] Saving names the scenario, shows its monthly total, and hides the empty state.
+- [ ] Load restores a saved workload; Rename and Delete work.
+- [ ] Reloading the page does not break the calculator with saved state present.
 
-\- \[ ] Changing storage GB updates the estimate.
+## Comparison
 
-\- \[ ] Changing storage rate updates the estimate.
+- [ ] Selecting a saved scenario shows per-service and total monthly/annual deltas.
+- [ ] The summary states which side is cheaper; equal totals are handled.
+- [ ] The comparison table stacks into cards on a narrow screen.
 
-\- \[ ] Changing monthly budget updates the budget message.
+## Export, import, share
 
+- [ ] Export JSON and Export CSV download files with readable names.
+- [ ] Importing an exported JSON file restores the workload.
+- [ ] Importing malformed JSON shows an error, not a crash.
+- [ ] Copy share link produces a URL; opening it loads that workload.
+- [ ] A malformed `?s=` link falls back to the saved estimate with a notice.
 
+## Theme and reduced motion
 
-\## Presets
+- [ ] System, Light, and Dark toggle the theme and persist across reloads.
+- [ ] Both themes are readable with no clipped or low-contrast text.
+- [ ] With reduced motion enabled, transitions and smooth scrolling are disabled.
 
+## Responsive
 
+- [ ] No horizontal overflow at 1440, 1024, 768, 390, and 320 px.
+- [ ] No overlapping controls or cut-off text at any width.
+- [ ] Inputs remain usable and labels readable on small screens.
 
-\- \[ ] `40h dev sprint` sets monthly hours to `40`.
+## Keyboard and focus
 
-\- \[ ] `160h part-time` sets monthly hours to `160`.
-
-\- \[ ] `730h always-on` sets monthly hours to `730`.
-
-
-
-\## Budget states
-
-
-
-\- \[ ] A budget higher than the estimate shows an under-budget message.
-
-\- \[ ] A budget lower than the estimate shows an over-budget warning.
-
-\- \[ ] A zero budget shows the no-budget message.
-
-
-
-\## Reset
-
-
-
-\- \[ ] Reset defaults restores the default instance.
-
-\- \[ ] Reset defaults restores the default storage type.
-
-\- \[ ] Reset defaults restores default hours, storage, and budget.
-
-\- \[ ] Saved browser state does not break the calculator after refresh.
-
-
-
-\## Responsive design
-
-
-
-\- \[ ] Layout works on desktop width.
-
-\- \[ ] Layout works on tablet width.
-
-\- \[ ] Layout works on mobile width.
-
-\- \[ ] Inputs remain readable on small screens.
-
+- [ ] The skip link is the first focusable element and works.
+- [ ] Every control is reachable by keyboard with a visible focus ring.

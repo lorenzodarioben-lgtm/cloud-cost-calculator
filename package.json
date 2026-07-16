@@ -1,7 +1,7 @@
 {
   "name": "cloud-cost-calculator",
-  "version": "1.0.0",
-  "description": "A simple AWS cost estimator mockup for EC2 hours, EBS storage, and budget warnings.",
+  "version": "2.0.0",
+  "description": "A dependency-free AWS FinOps planning workbench: multi-service estimates, budget health, scenario comparison, and simplified sample pricing.",
   "type": "module",
   "private": true,
   "scripts": {
@@ -14,9 +14,13 @@
     "aws",
     "cloud",
     "cost-calculator",
+    "finops",
     "ec2",
     "ebs",
-    "javascript"
+    "s3",
+    "rds",
+    "javascript",
+    "github-pages"
   ],
   "author": "",
   "license": "MIT"
